@@ -1,9 +1,15 @@
-const express = require('express');
+const express  = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-//const salt = await bcrypt.genSalt(10);
+const cors     = require('cors');
 require('dotenv').config();
-// Models — import all so Mongoose registers them
+
+const app = express();
+
+// ─── Middleware ──────────────────────────────────────────────────────────────
+app.use(cors());
+app.use(express.json());
+
+// ─── Models ─────────────────────────────────────────────────────────────────
 require('./models/User');
 require('./models/Product');
 require('./models/Order');
@@ -11,25 +17,32 @@ require('./models/Review');
 require('./models/Coupon');
 require('./models/Category');
 
-const app = express();
+// ─── Routes ─────────────────────────────────────────────────────────────────
+app.use('/api/auth',       require('./routes/auth'));
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/products',   require('./routes/products'));
+app.use('/api/orders',     require('./routes/orders'));
+app.use('/api/reviews',    require('./routes/reviews'));
+app.use('/api/coupons',    require('./routes/coupons'));
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Test route — remove this later
+// ─── Health check ───────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({ message: 'MyShop API is running!' });
 });
 
-// Database connection
+// ─── Global error handler ────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong on the server' });
+});
+
+// ─── Database + Start server ─────────────────────────────────────────────────
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully'))
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(`Server running on port ${process.env.PORT || 5000}`);
+    });
+  })
   .catch((err) => console.log('MongoDB error:', err));
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
