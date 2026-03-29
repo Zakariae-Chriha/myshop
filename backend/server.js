@@ -1,7 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+//const salt = await bcrypt.genSalt(10);
 require('dotenv').config();
+// Models — import all so Mongoose registers them
+require('./models/User');
+require('./models/Product');
+require('./models/Order');
+require('./models/Review');
+require('./models/Coupon');
+require('./models/Category');
 
 const app = express();
 
