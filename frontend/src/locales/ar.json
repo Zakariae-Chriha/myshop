@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "cart": "السلة",
+    "account": "حسابي",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "admin": "لوحة الإدارة"
+  },
+  "home": {
+    "hero_title": "مرحباً بك في متجرنا",
+    "hero_subtitle": "اكتشف أفضل منتجاتنا",
+    "shop_now": "تسوق الآن",
+    "featured": "منتجات مميزة",
+    "categories": "الفئات"
+  },
+  "shop": {
+    "title": "جميع المنتجات",
+    "search": "ابحث عن منتج...",
+    "filter_category": "جميع الفئات",
+    "filter_type": "جميع الأنواع",
+    "physical": "منتج مادي",
+    "digital": "منتج رقمي",
+    "sort_newest": "الأحدث",
+    "sort_price_asc": "السعر: من الأقل",
+    "sort_price_desc": "السعر: من الأعلى",
+    "sort_bestseller": "الأكثر مبيعاً",
+    "no_products": "لا توجد منتجات"
+  },
+  "product": {
+    "add_to_cart": "أضف إلى السلة",
+    "in_stock": "متوفر",
+    "out_of_stock": "غير متوفر",
+    "reviews": "التقييمات",
+    "no_reviews": "لا توجد تقييمات بعد",
+    "write_review": "اكتب تقييماً",
+    "digital_product": "منتج رقمي",
+    "physical_product": "منتج مادي"
+  },
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "سلتك فارغة",
+    "subtotal": "المجموع الجزئي",
+    "vat": "ضريبة القيمة المضافة (19%)",
+    "discount": "الخصم",
+    "total": "الإجمالي",
+    "checkout": "إتمام الشراء",
+    "coupon_placeholder": "كود الخصم",
+    "apply_coupon": "تطبيق",
+    "remove": "حذف",
+    "continue_shopping": "مواصلة التسوق"
+  },
+  "checkout": {
+    "title": "إتمام الشراء",
+    "shipping_address": "عنوان الشحن",
+    "full_name": "الاسم الكامل",
+    "street": "الشارع",
+    "city": "المدينة",
+    "zip": "الرمز البريدي",
+    "country": "الدولة",
+    "phone": "رقم الهاتف",
+    "payment_method": "طريقة الدفع",
+    "pay_stripe": "الدفع بالبطاقة",
+    "pay_cash": "الدفع عند الاستلام",
+    "place_order": "تأكيد الطلب",
+    "notes": "ملاحظات الطلب (اختياري)"
+  },
+  "order": {
+    "confirmed": "تم تأكيد الطلب!",
+    "thank_you": "شكراً لطلبك",
+    "order_number": "رقم الطلب",
+    "status_pending": "قيد الانتظار",
+    "status_processing": "قيد المعالجة",
+    "status_shipped": "تم الشحن",
+    "status_delivered": "تم التسليم",
+    "status_cancelled": "ملغي",
+    "track_order": "تتبع طلبك",
+    "enter_order_number": "أدخل رقم الطلب"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "no_account": "ليس لديك حساب؟",
+    "have_account": "لديك حساب بالفعل؟",
+    "login_success": "مرحباً بعودتك!",
+    "register_success": "تم إنشاء الحساب بنجاح!"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "price": "السعر",
+    "quantity": "الكمية"
+  }
+}

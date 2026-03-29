@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "cart": "Cart",
+    "account": "My Account",
+    "login": "Login",
+    "logout": "Logout",
+    "admin": "Admin Panel"
+  },
+  "home": {
+    "hero_title": "Welcome to Our Shop",
+    "hero_subtitle": "Discover our best products",
+    "shop_now": "Shop Now",
+    "featured": "Featured Products",
+    "categories": "Categories"
+  },
+  "shop": {
+    "title": "All Products",
+    "search": "Search products...",
+    "filter_category": "All Categories",
+    "filter_type": "All Types",
+    "physical": "Physical",
+    "digital": "Digital",
+    "sort_newest": "Newest",
+    "sort_price_asc": "Price: Low to High",
+    "sort_price_desc": "Price: High to Low",
+    "sort_bestseller": "Best Sellers",
+    "no_products": "No products found"
+  },
+  "product": {
+    "add_to_cart": "Add to Cart",
+    "in_stock": "In Stock",
+    "out_of_stock": "Out of Stock",
+    "reviews": "Reviews",
+    "no_reviews": "No reviews yet",
+    "write_review": "Write a Review",
+    "digital_product": "Digital Product",
+    "physical_product": "Physical Product"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "vat": "VAT (19%)",
+    "discount": "Discount",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "coupon_placeholder": "Coupon code",
+    "apply_coupon": "Apply",
+    "remove": "Remove",
+    "continue_shopping": "Continue Shopping"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shipping_address": "Shipping Address",
+    "full_name": "Full Name",
+    "street": "Street Address",
+    "city": "City",
+    "zip": "ZIP Code",
+    "country": "Country",
+    "phone": "Phone Number",
+    "payment_method": "Payment Method",
+    "pay_stripe": "Pay with Card (Stripe)",
+    "pay_cash": "Cash on Delivery",
+    "place_order": "Place Order",
+    "notes": "Order Notes (optional)"
+  },
+  "order": {
+    "confirmed": "Order Confirmed!",
+    "thank_you": "Thank you for your order",
+    "order_number": "Order Number",
+    "status_pending": "Pending",
+    "status_processing": "Processing",
+    "status_shipped": "Shipped",
+    "status_delivered": "Delivered",
+    "status_cancelled": "Cancelled",
+    "track_order": "Track Your Order",
+    "enter_order_number": "Enter your order number"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "login_success": "Welcome back!",
+    "register_success": "Account created successfully!"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "price": "Price",
+    "quantity": "Quantity"
+  }
+}

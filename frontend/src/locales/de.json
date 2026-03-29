@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "shop": "Shop",
+    "cart": "Warenkorb",
+    "account": "Mein Konto",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "admin": "Admin-Panel"
+  },
+  "home": {
+    "hero_title": "Willkommen in unserem Shop",
+    "hero_subtitle": "Entdecke unsere besten Produkte",
+    "shop_now": "Jetzt einkaufen",
+    "featured": "Empfohlene Produkte",
+    "categories": "Kategorien"
+  },
+  "shop": {
+    "title": "Alle Produkte",
+    "search": "Produkte suchen...",
+    "filter_category": "Alle Kategorien",
+    "filter_type": "Alle Typen",
+    "physical": "Physisch",
+    "digital": "Digital",
+    "sort_newest": "Neueste",
+    "sort_price_asc": "Preis: Aufsteigend",
+    "sort_price_desc": "Preis: Absteigend",
+    "sort_bestseller": "Bestseller",
+    "no_products": "Keine Produkte gefunden"
+  },
+  "product": {
+    "add_to_cart": "In den Warenkorb",
+    "in_stock": "Auf Lager",
+    "out_of_stock": "Nicht verfügbar",
+    "reviews": "Bewertungen",
+    "no_reviews": "Noch keine Bewertungen",
+    "write_review": "Bewertung schreiben",
+    "digital_product": "Digitales Produkt",
+    "physical_product": "Physisches Produkt"
+  },
+  "cart": {
+    "title": "Ihr Warenkorb",
+    "empty": "Ihr Warenkorb ist leer",
+    "subtotal": "Zwischensumme",
+    "vat": "MwSt. (19%)",
+    "discount": "Rabatt",
+    "total": "Gesamt",
+    "checkout": "Zur Kasse",
+    "coupon_placeholder": "Gutscheincode",
+    "apply_coupon": "Anwenden",
+    "remove": "Entfernen",
+    "continue_shopping": "Weiter einkaufen"
+  },
+  "checkout": {
+    "title": "Kasse",
+    "shipping_address": "Lieferadresse",
+    "full_name": "Vollständiger Name",
+    "street": "Straße",
+    "city": "Stadt",
+    "zip": "PLZ",
+    "country": "Land",
+    "phone": "Telefonnummer",
+    "payment_method": "Zahlungsmethode",
+    "pay_stripe": "Mit Karte bezahlen",
+    "pay_cash": "Nachnahme",
+    "place_order": "Bestellung aufgeben",
+    "notes": "Bestellnotizen (optional)"
+  },
+  "order": {
+    "confirmed": "Bestellung bestätigt!",
+    "thank_you": "Vielen Dank für Ihre Bestellung",
+    "order_number": "Bestellnummer",
+    "status_pending": "Ausstehend",
+    "status_processing": "In Bearbeitung",
+    "status_shipped": "Versandt",
+    "status_delivered": "Geliefert",
+    "status_cancelled": "Storniert",
+    "track_order": "Bestellung verfolgen",
+    "enter_order_number": "Bestellnummer eingeben"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "name": "Vollständiger Name",
+    "no_account": "Noch kein Konto?",
+    "have_account": "Bereits ein Konto?",
+    "login_success": "Willkommen zurück!",
+    "register_success": "Konto erfolgreich erstellt!"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Etwas ist schiefgelaufen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "price": "Preis",
+    "quantity": "Menge"
+  }
+}
