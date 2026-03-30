@@ -26,7 +26,7 @@ const categorySchema = new mongoose.Schema(
 );
 
 // ─── Auto-generate slug from English name ────────────────────────────────────
-categorySchema.pre('save', function (next) {
+categorySchema.pre('save', async function () {
   if (this.isModified('name.en')) {
     this.slug = this.name.en
       .toLowerCase()
@@ -34,7 +34,5 @@ categorySchema.pre('save', function (next) {
       .replace(/[^a-z0-9 ]/g, '')
       .replace(/\s+/g, '-');
   }
-  next();
 });
-
 module.exports = mongoose.model('Category', categorySchema);
