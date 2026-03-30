@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const Coupon  = require('../models/Coupon');
 const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
+const { triggerN8n } = require('../utils/n8nWebhook');
 
 // POST /api/orders
 router.post('/', protect, async (req, res) => {
@@ -13,8 +14,10 @@ router.post('/', protect, async (req, res) => {
     if (!items || items.length === 0) {
       return res.status(400).json({ message: 'No items in order' });
     }
+
     let subtotal = 0;
     const orderItems = [];
+
     for (const item of items) {
       const product = await Product.findById(item.product);
       if (!product) {
@@ -53,13 +56,16 @@ router.post('/', protect, async (req, res) => {
     const total     = parseFloat((discountedSubtotal + vatAmount).toFixed(2));
 
     const order = await Order.create({
-      customer: req.user._id,
-      items: orderItems,
-      subtotal: parseFloat(discountedSubtotal.toFixed(2)),
-      vatAmount, discount, total,
-      couponCode: couponCode || '',
-      paymentMethod, shippingAddress,
-      notes: notes || '',
+      customer:       req.user._id,
+      items:          orderItems,
+      subtotal:       parseFloat(discountedSubtotal.toFixed(2)),
+      vatAmount,
+      discount,
+      total,
+      couponCode:     couponCode || '',
+      paymentMethod,
+      shippingAddress,
+      notes:          notes || '',
     });
 
     for (const item of orderItems) {
@@ -70,8 +76,26 @@ router.post('/', protect, async (req, res) => {
       }
     }
 
-    const populatedOrder = await Order.findById(order._id).populate('customer', 'name email');
-    res.status(201).json({ message: 'Order placed successfully', order: populatedOrder });
+    const populatedOrder = await Order.findById(order._id)
+      .populate('customer', 'name email');
+
+    // Trigger n8n automation
+    triggerN8n('order_created', {
+      orderNumber:   order.orderNumber,
+      customerName:  populatedOrder.customer.name,
+      customerEmail: populatedOrder.customer.email,
+      total:         order.total,
+      vatAmount:     order.vatAmount,
+      paymentMethod: order.paymentMethod,
+      items:         order.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.priceWithVAT })),
+      createdAt:     order.createdAt,
+    });
+
+    res.status(201).json({
+      message: 'Order placed successfully',
+      order:   populatedOrder,
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -98,8 +122,6 @@ router.get('/track/:orderNumber', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-// ── ADMIN ROUTES — must come BEFORE /:id ─────────────────────────────────────
 
 // GET /api/orders/admin/all
 router.get('/admin/all', protect, isAdmin, async (req, res) => {
