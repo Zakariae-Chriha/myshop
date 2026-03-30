@@ -129,10 +129,22 @@ const Checkout = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    clearCart();
-    navigate('/order-confirm', { state: { order: { orderNumber: 'Paid', total } } });
-  };
+  const handlePaymentSuccess = async () => {
+  try {
+    await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ paymentStatus: 'paid', orderStatus: 'processing' }),
+    });
+  } catch (err) {
+    console.log('Status update error:', err);
+  }
+  clearCart();
+  navigate('/order-confirm', { state: { order: { orderNumber: orderId, total } } });
+};
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh', padding: '2rem 0' }}>
