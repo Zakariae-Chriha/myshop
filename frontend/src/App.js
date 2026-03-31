@@ -6,7 +6,7 @@ import ResetPassword  from './pages/customer/ResetPassword';
 import Navbar      from './components/Navbar';
 import Footer      from './components/Footer';
 import CookieBanner from './components/CookieBanner';
-
+import AdminsManager from './pages/admin/AdminsManager';
 import Home          from './pages/customer/Home';
 import Shop          from './pages/customer/Shop';
 import ProductDetail from './pages/customer/ProductDetail';
@@ -71,6 +71,7 @@ const AppContent = () => {
           <Route path="/admin/categories" element={<AdminRoute><CategoriesManager /></AdminRoute>} />
           <Route path="/forgot-password"        element={<ForgotPassword />} />
 <Route path="/reset-password/:token"  element={<ResetPassword />} />
+<Route path="/admin/admins" element={<AdminRoute><AdminsManager /></AdminRoute>} />
         </Routes>
       </main>
       <Footer />
