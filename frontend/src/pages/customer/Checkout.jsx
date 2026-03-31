@@ -47,24 +47,37 @@ const StripePaymentForm = ({ orderId, onSuccess, onError }) => {
   return (
     <form onSubmit={handlePay}>
       <div style={{
-        border: '1.5px solid #D1D5DB', borderRadius: 10,
-        padding: '0.85rem 1rem', marginBottom: '1rem', background: '#fff',
+        background: 'rgba(255,255,255,0.05)',
+        border: '1.5px solid rgba(255,255,255,0.1)',
+        borderRadius: 12, padding: '1rem',
+        marginBottom: '1rem',
       }}>
         <CardElement options={{
           style: {
-            base: { fontSize: '16px', color: '#1F2937', '::placeholder': { color: '#9CA3AF' } },
-            invalid: { color: '#EF4444' },
+            base: {
+              fontSize: '16px',
+              color: '#F1F5F9',
+              '::placeholder': { color: '#475569' },
+              backgroundColor: 'transparent',
+            },
+            invalid: { color: '#FCA5A5' },
           },
         }} />
       </div>
+
       <div style={{
-        background: '#EEF0FF', borderRadius: 8, padding: '0.6rem 1rem',
-        fontSize: '0.8rem', color: '#6C63FF', marginBottom: '1rem',
+        background: 'rgba(108,99,255,0.08)',
+        border: '1px solid rgba(108,99,255,0.2)',
+        borderRadius: 8, padding: '0.6rem 1rem',
+        fontSize: '0.8rem', color: '#A5B4FC',
+        marginBottom: '1rem',
       }}>
-        Test card: 4242 4242 4242 4242 · Any future date · Any CVC
+        🧪 Test card: 4242 4242 4242 4242 · 12/29 · 123
       </div>
-      <button type="submit" disabled={!stripe || paying} className="btn btn-primary btn-full btn-lg">
-        {paying ? 'Processing payment...' : 'Pay Now'}
+
+      <button type="submit" disabled={!stripe || paying}
+        className="btn btn-primary btn-full btn-lg">
+        {paying ? '⏳ Processing payment...' : '🔒 Pay Now'}
       </button>
     </form>
   );
@@ -72,15 +85,15 @@ const StripePaymentForm = ({ orderId, onSuccess, onError }) => {
 
 const Checkout = () => {
   const { cartItems, subtotal, clearCart } = useCart();
-  const { user } = useAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const { user }    = useAuth();
+  const navigate    = useNavigate();
+  const location    = useLocation();
 
   const { couponCode = '', discount = 0 } = location.state || {};
 
   const discountedSubtotal = subtotal - discount;
-  const vatAmount = parseFloat((discountedSubtotal * 0.19).toFixed(2));
-  const total     = parseFloat((discountedSubtotal + vatAmount).toFixed(2));
+  const vatAmount          = parseFloat((discountedSubtotal * 0.19).toFixed(2));
+  const total              = parseFloat((discountedSubtotal + vatAmount).toFixed(2));
 
   const [address, setAddress] = useState({
     fullName: user?.name || '',
@@ -130,26 +143,38 @@ const Checkout = () => {
   };
 
   const handlePaymentSuccess = async () => {
-  try {
-    await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ paymentStatus: 'paid', orderStatus: 'processing' }),
-    });
-  } catch (err) {
-    console.log('Status update error:', err);
-  }
-  clearCart();
-  navigate('/order-confirm', { state: { order: { orderNumber: orderId, total } } });
-};
+    try {
+      await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ paymentStatus: 'paid', orderStatus: 'processing' }),
+      });
+    } catch (err) {
+      console.log('Status update error:', err);
+    }
+    clearCart();
+    navigate('/order-confirm', { state: { order: { orderNumber: orderId, total } } });
+  };
+
+  const cardStyle = {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 16, padding: '1.5rem',
+    marginBottom: '1.5rem',
+  };
 
   return (
-    <div style={{ background: '#F9FAFB', minHeight: '100vh', padding: '2rem 0' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '2rem 0' }}>
       <div className="container">
-        <h1 style={{ marginBottom: '2rem' }}>Checkout</h1>
+
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ color: '#F1F5F9', marginBottom: '0.25rem' }}>Checkout</h1>
+          <p style={{ color: '#475569' }}>Complete your order securely</p>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
 
@@ -158,77 +183,111 @@ const Checkout = () => {
 
             {!orderPlaced ? (
               <>
-                {/* Shipping address */}
-                <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid #F3F4F6' }}>
-                  <h3 style={{ marginBottom: '1.25rem' }}>Shipping Address</h3>
+                {/* Shipping */}
+                <div style={cardStyle}>
+                  <h3 style={{ color: '#F1F5F9', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📦 Shipping Address
+                  </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label className="form-label">Full Name</label>
-                      <input name="fullName" value={address.fullName} onChange={handleAddress} className="form-input" placeholder="Your full name" />
+                      <input name="fullName" value={address.fullName} onChange={handleAddress}
+                        className="form-input" placeholder="Your full name" />
                     </div>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label className="form-label">Street Address</label>
-                      <input name="street" value={address.street} onChange={handleAddress} className="form-input" placeholder="Street and number" />
+                      <input name="street" value={address.street} onChange={handleAddress}
+                        className="form-input" placeholder="Street and number" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">City</label>
-                      <input name="city" value={address.city} onChange={handleAddress} className="form-input" placeholder="City" />
+                      <input name="city" value={address.city} onChange={handleAddress}
+                        className="form-input" placeholder="City" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">ZIP Code</label>
-                      <input name="zip" value={address.zip} onChange={handleAddress} className="form-input" placeholder="12345" />
+                      <input name="zip" value={address.zip} onChange={handleAddress}
+                        className="form-input" placeholder="12345" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Country</label>
-                      <input name="country" value={address.country} onChange={handleAddress} className="form-input" />
+                      <input name="country" value={address.country} onChange={handleAddress}
+                        className="form-input" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Phone</label>
-                      <input name="phone" value={address.phone} onChange={handleAddress} className="form-input" placeholder="+49 123 456789" />
+                      <input name="phone" value={address.phone} onChange={handleAddress}
+                        className="form-input" placeholder="+49 123 456789" />
                     </div>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label className="form-label">Order Notes (optional)</label>
-                      <textarea value={notes} onChange={e => setNotes(e.target.value)} className="form-input" rows={3} placeholder="Any special instructions..." style={{ resize: 'vertical' }} />
+                      <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                        className="form-input" rows={3}
+                        placeholder="Any special instructions..."
+                        style={{ resize: 'vertical' }} />
                     </div>
                   </div>
                 </div>
 
                 {/* Payment method */}
-                <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', border: '1px solid #F3F4F6' }}>
-                  <h3 style={{ marginBottom: '1.25rem' }}>Payment Method</h3>
+                <div style={cardStyle}>
+                  <h3 style={{ color: '#F1F5F9', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    💳 Payment Method
+                  </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     {[
-                      { value: 'stripe',          icon: '💳', label: 'Pay with Card (Stripe)', desc: 'Visa, Mastercard, American Express' },
-                      { value: 'cash_on_delivery', icon: '💵', label: 'Cash on Delivery',       desc: 'Pay when your order arrives' },
+                      { value: 'stripe',          icon: '💳', label: 'Pay with Card (Stripe)', desc: 'Visa, Mastercard, American Express — secure & instant' },
+                      { value: 'cash_on_delivery', icon: '💵', label: 'Cash on Delivery',       desc: 'Pay when your order arrives at your door' },
                     ].map(opt => (
                       <label key={opt.value} style={{
                         display: 'flex', alignItems: 'center', gap: '1rem',
-                        padding: '1rem', borderRadius: 10, cursor: 'pointer',
-                        border: `2px solid ${paymentMethod === opt.value ? '#6C63FF' : '#E5E7EB'}`,
-                        background: paymentMethod === opt.value ? '#EEF0FF' : '#fff',
+                        padding: '1rem 1.25rem', borderRadius: 12, cursor: 'pointer',
+                        border: `1.5px solid ${paymentMethod === opt.value ? 'rgba(108,99,255,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                        background: paymentMethod === opt.value ? 'rgba(108,99,255,0.08)' : 'rgba(255,255,255,0.02)',
                         transition: 'all 0.2s',
                       }}>
-                        <input type="radio" value={opt.value} checked={paymentMethod === opt.value}
-                          onChange={() => setPaymentMethod(opt.value)} style={{ display: 'none' }} />
+                        <input type="radio" value={opt.value}
+                          checked={paymentMethod === opt.value}
+                          onChange={() => setPaymentMethod(opt.value)}
+                          style={{ display: 'none' }} />
                         <span style={{ fontSize: '1.5rem' }}>{opt.icon}</span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{opt.label}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>{opt.desc}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#F1F5F9' }}>{opt.label}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '0.15rem' }}>{opt.desc}</div>
                         </div>
                         {paymentMethod === opt.value && (
-                          <span style={{ marginLeft: 'auto', color: '#6C63FF', fontWeight: 700 }}>✓</span>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#fff', fontSize: '12px', fontWeight: 700,
+                          }}>
+                            ✓
+                          </div>
                         )}
                       </label>
                     ))}
                   </div>
-                  <button onClick={placeOrder} disabled={placingOrder} className="btn btn-primary btn-full btn-lg">
-                    {placingOrder ? 'Placing order...' : paymentMethod === 'stripe' ? 'Continue to Payment' : 'Place Order'}
+
+                  <button onClick={placeOrder} disabled={placingOrder}
+                    className="btn btn-primary btn-full btn-lg">
+                    {placingOrder
+                      ? '⏳ Placing order...'
+                      : paymentMethod === 'stripe'
+                        ? '🔒 Continue to Payment'
+                        : '✅ Place Order'
+                    }
                   </button>
                 </div>
               </>
             ) : (
-              <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', border: '1px solid #F3F4F6' }}>
-                <h3 style={{ marginBottom: '1.25rem' }}>Enter Card Details</h3>
+              <div style={cardStyle}>
+                <h3 style={{ color: '#F1F5F9', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🔒 Enter Card Details
+                </h3>
+                <p style={{ color: '#475569', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                  Your payment is encrypted and secure
+                </p>
                 <Elements stripe={stripePromise}>
                   <StripePaymentForm
                     orderId={orderId}
@@ -240,31 +299,71 @@ const Checkout = () => {
             )}
           </div>
 
-          {/* Order summary */}
-          <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', border: '1px solid #F3F4F6', position: 'sticky', top: 80 }}>
-            <h3 style={{ marginBottom: '1.25rem' }}>Order Summary</h3>
+          {/* Order Summary */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 20, padding: '1.75rem',
+            position: 'sticky', top: 80,
+          }}>
+            <h3 style={{ color: '#F1F5F9', marginBottom: '1.25rem' }}>Order Summary</h3>
+
             <div style={{ marginBottom: '1rem' }}>
               {cartItems.map(item => (
-                <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem', fontSize: '0.875rem' }}>
-                  <span>{item.name?.en || item.name} x{item.quantity}</span>
-                  <span style={{ fontWeight: 500 }}>€{((item.priceWithVAT || item.price * 1.19) * item.quantity).toFixed(2)}</span>
+                <div key={item._id} style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  marginBottom: '0.6rem', fontSize: '0.85rem',
+                  padding: '0.5rem 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }}>
+                  <span style={{ color: '#64748B' }}>
+                    {item.name?.en || item.name} ×{item.quantity}
+                  </span>
+                  <span style={{ color: '#94A3B8', fontWeight: 500 }}>
+                    €{((item.priceWithVAT || item.price * 1.19) * item.quantity).toFixed(2)}
+                  </span>
                 </div>
               ))}
             </div>
-            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1rem' }}>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                <span style={{ color: '#374151' }}>Subtotal (net)</span>
-                <span>€{discountedSubtotal.toFixed(2)}</span>
+                <span style={{ color: '#64748B' }}>Subtotal (net)</span>
+                <span style={{ color: '#94A3B8' }}>€{discountedSubtotal.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                <span style={{ color: '#9CA3AF' }}>VAT (19%)</span>
-                <span style={{ color: '#9CA3AF' }}>€{vatAmount.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.875rem' }}>
+                <span style={{ color: '#475569' }}>VAT (19%)</span>
+                <span style={{ color: '#475569' }}>€{vatAmount.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '2px solid #F3F4F6' }}>
-                <span style={{ fontWeight: 700 }}>Total</span>
-                <span style={{ fontWeight: 800, color: '#6C63FF', fontSize: '1.1rem' }}>€{total.toFixed(2)}</span>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between',
+                paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                <span style={{ fontWeight: 700, color: '#F1F5F9' }}>Total</span>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 800, color: '#A5B4FC', fontSize: '1.25rem' }}>
+                    €{total.toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#475569' }}>incl. 19% MwSt.</div>
+                </div>
               </div>
-              <p style={{ fontSize: '0.72rem', color: '#9CA3AF', textAlign: 'right', marginTop: 4 }}>incl. 19% MwSt.</p>
+            </div>
+
+            {/* Trust badges */}
+            <div style={{
+              marginTop: '1.5rem', paddingTop: '1rem',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', flexDirection: 'column', gap: '0.5rem',
+            }}>
+              {[
+                { icon: '🔒', text: 'SSL encrypted checkout' },
+                { icon: '💳', text: 'Secure payment via Stripe' },
+                { icon: '🇩🇪', text: 'GDPR compliant — Germany' },
+              ].map(({ icon, text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#334155' }}>
+                  <span>{icon}</span><span>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

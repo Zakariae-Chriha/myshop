@@ -1,37 +1,37 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt   = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
     name: {
-      type: String,
-      required: [true, 'Name is required'],
-      trim: true,
+      type:      String,
+      required:  [true, 'Name is required'],
+      trim:      true,
       minlength: [2, 'Name must be at least 2 characters'],
       maxlength: [50, 'Name cannot exceed 50 characters'],
     },
     email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: true,
+      type:      String,
+      required:  [true, 'Email is required'],
+      unique:    true,
       lowercase: true,
-      trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+      trim:      true,
+      match:     [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
     },
     password: {
-      type: String,
-      required: [true, 'Password is required'],
+      type:      String,
+      required:  [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false,
+      select:    false,
     },
     role: {
-      type: String,
-      enum: ['customer', 'admin'],
+      type:    String,
+      enum:    ['customer', 'admin'],
       default: 'customer',
     },
     language: {
-      type: String,
-      enum: ['en', 'de', 'ar'],
+      type:    String,
+      enum:    ['en', 'de', 'ar'],
       default: 'en',
     },
     phone:   { type: String, default: '' },
@@ -41,7 +41,9 @@ const userSchema = new mongoose.Schema(
       zip:     { type: String, default: '' },
       country: { type: String, default: 'Germany' },
     },
-    isActive: { type: Boolean, default: true },
+    isActive:             { type: Boolean, default: true },
+    resetPasswordToken:   { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
@@ -57,14 +59,14 @@ userSchema.methods.comparePassword = async function (entered) {
 
 userSchema.methods.toPublicProfile = function () {
   return {
-    _id:      this._id,
-    name:     this.name,
-    email:    this.email,
-    role:     this.role,
-    language: this.language,
-    phone:    this.phone,
-    address:  this.address,
-    isActive: this.isActive,
+    _id:       this._id,
+    name:      this.name,
+    email:     this.email,
+    role:      this.role,
+    language:  this.language,
+    phone:     this.phone,
+    address:   this.address,
+    isActive:  this.isActive,
     createdAt: this.createdAt,
   };
 };

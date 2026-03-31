@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-
+import ForgotPassword from './pages/customer/ForgotPassword';
+import ResetPassword  from './pages/customer/ResetPassword';
 import Navbar      from './components/Navbar';
 import Footer      from './components/Footer';
 import CookieBanner from './components/CookieBanner';
@@ -68,6 +69,8 @@ const AppContent = () => {
           <Route path="/admin/customers"  element={<AdminRoute><CustomersManager /></AdminRoute>} />
           <Route path="/admin/coupons"    element={<AdminRoute><CouponsManager /></AdminRoute>} />
           <Route path="/admin/categories" element={<AdminRoute><CategoriesManager /></AdminRoute>} />
+          <Route path="/forgot-password"        element={<ForgotPassword />} />
+<Route path="/reset-password/:token"  element={<ResetPassword />} />
         </Routes>
       </main>
       <Footer />

@@ -5,31 +5,19 @@ import { useAuth } from '../../context/AuthContext';
 const Register = () => {
   const { register } = useAuth();
   const navigate     = useNavigate();
-
-  const [formData, setFormData] = useState({
-    name: '', email: '', password: '', confirmPassword: '',
-  });
+  const [form,    setForm]    = useState({ name: '', email: '', password: '', confirm: '' });
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (formData.password !== formData.confirmPassword) {
+    if (form.password !== form.confirm) {
       return setError('Passwords do not match');
     }
-    if (formData.password.length < 6) {
-      return setError('Password must be at least 6 characters');
-    }
-
     setLoading(true);
+    setError('');
     try {
-      await register(formData.name, formData.email, formData.password);
+      await register(form.name, form.email, form.password);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -40,124 +28,104 @@ const Register = () => {
 
   return (
     <div style={{
-      minHeight: '80vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center',
-      background: '#f5f5f5',
+      minHeight: '100vh', background: 'var(--bg-primary)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '2rem', position: 'relative', overflow: 'hidden',
     }}>
       <div style={{
-        background: '#fff', padding: '2.5rem',
-        borderRadius: 12, width: '100%', maxWidth: 420,
-        boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-      }}>
-        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem' }}>
-          Create Account
-        </h2>
+        position: 'absolute', top: '20%', left: '50%',
+        transform: 'translateX(-50%)',
+        width: 500, height: 300, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(108,99,255,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
 
-        {error && (
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 24, padding: '2.5rem',
+        width: '100%', maxWidth: 440,
+        position: 'relative', zIndex: 1,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
-            background: '#fef2f2', color: '#dc2626', padding: '0.75rem 1rem',
-            borderRadius: 8, marginBottom: '1rem', fontSize: '14px',
-            border: '1px solid #fecaca',
+            width: 60, height: 60, borderRadius: 16, margin: '0 auto 1rem',
+            background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.5rem',
           }}>
-            {error}
+            🚀
           </div>
-        )}
+          <h2 style={{ color: '#F1F5F9', marginBottom: '0.25rem' }}>Create Account</h2>
+          <p style={{ color: '#475569', fontSize: '0.875rem' }}>Join thousands of learners today</p>
+        </div>
+
+        {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Full Name
-            </label>
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              className="form-input"
               placeholder="Your full name"
-              style={inputStyle}
+              required
             />
           </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Email Address
-            </label>
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="form-input"
               placeholder="your@email.com"
-              style={inputStyle}
+              required
             />
           </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Password
-            </label>
+          <div className="form-group">
+            <label className="form-label">Password</label>
             <input
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              className="form-input"
               placeholder="Minimum 6 characters"
-              style={inputStyle}
+              minLength={6}
+              required
             />
           </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Confirm Password
-            </label>
+          <div className="form-group">
+            <label className="form-label">Confirm Password</label>
             <input
               type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
+              value={form.confirm}
+              onChange={e => setForm({ ...form, confirm: e.target.value })}
+              className="form-input"
               placeholder="Repeat your password"
-              style={inputStyle}
+              required
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={btnStyle}
-          >
+          <button type="submit" disabled={loading}
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: '0.5rem' }}>
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '14px', color: '#666' }}>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: '#475569' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#1a1a1a', fontWeight: 600 }}>
-            Login here
+          <Link to="/login" style={{ color: '#A5B4FC', fontWeight: 600 }}>
+            Sign in here
           </Link>
         </p>
       </div>
     </div>
   );
-};
-
-const inputStyle = {
-  width: '100%', padding: '0.75rem 1rem',
-  border: '1px solid #ddd', borderRadius: 8,
-  fontSize: '15px', outline: 'none',
-  transition: 'border-color 0.2s',
-  boxSizing: 'border-box',
-};
-
-const btnStyle = {
-  width: '100%', padding: '0.85rem',
-  background: '#1a1a1a', color: '#fff',
-  border: 'none', borderRadius: 8,
-  fontSize: '15px', fontWeight: 600,
-  cursor: 'pointer',
 };
 
 export default Register;

@@ -3,29 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
-  const { login } = useAuth();
-  const navigate           = useNavigate();
-
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error,   setError]     = useState('');
-  const [loading, setLoading]   = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
-  };
+  const { login }   = useAuth();
+  const navigate    = useNavigate();
+  const [form,     setForm]    = useState({ email: '', password: '' });
+  const [error,    setError]   = useState('');
+  const [loading,  setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
-      const data = await login(formData.email, formData.password);
-      // Redirect admin to admin panel, customer to home
-      if (data.user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+      await login(form.email, form.password);
+      navigate('/');
     } catch (err) {
       setError(err.message || 'Invalid email or password');
     } finally {
@@ -35,93 +25,88 @@ const Login = () => {
 
   return (
     <div style={{
-      minHeight: '80vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center',
-      background: '#f5f5f5',
+      minHeight: '100vh', background: 'var(--bg-primary)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '2rem', position: 'relative', overflow: 'hidden',
     }}>
+      {/* Background glow */}
       <div style={{
-        background: '#fff', padding: '2.5rem',
-        borderRadius: 12, width: '100%', maxWidth: 420,
-        boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-      }}>
-        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem' }}>
-          Welcome Back
-        </h2>
+        position: 'absolute', top: '20%', left: '50%',
+        transform: 'translateX(-50%)',
+        width: 500, height: 300, borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(108,99,255,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
 
-        {error && (
+      <div style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 24, padding: '2.5rem',
+        width: '100%', maxWidth: 420,
+        position: 'relative', zIndex: 1,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{
-            background: '#fef2f2', color: '#dc2626', padding: '0.75rem 1rem',
-            borderRadius: 8, marginBottom: '1rem', fontSize: '14px',
-            border: '1px solid #fecaca',
+            width: 60, height: 60, borderRadius: 16, margin: '0 auto 1rem',
+            background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.5rem',
           }}>
-            {error}
+            👋
           </div>
-        )}
+          <h2 style={{ color: '#F1F5F9', marginBottom: '0.25rem' }}>Welcome back</h2>
+          <p style={{ color: '#475569', fontSize: '0.875rem' }}>Sign in to your account</p>
+        </div>
+
+        {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Email Address
-            </label>
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              className="form-input"
               placeholder="your@email.com"
-              style={inputStyle}
+              required
             />
           </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '14px', fontWeight: 500 }}>
-              Password
-            </label>
+          <div className="form-group">
+            <label className="form-label">Password</label>
             <input
               type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              className="form-input"
               placeholder="Your password"
-              style={inputStyle}
+              required
             />
+            <div style={{ textAlign: 'right', marginTop: '0.4rem' }}>
+              <Link to="/forgot-password" style={{ fontSize: '0.8rem', color: '#A5B4FC' }}>
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={btnStyle}
-          >
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" disabled={loading}
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: '0.5rem' }}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '14px', color: '#666' }}>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: '#475569' }}>
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#1a1a1a', fontWeight: 600 }}>
-            Register here
+          <Link to="/register" style={{ color: '#A5B4FC', fontWeight: 600 }}>
+            Create one free
           </Link>
         </p>
       </div>
     </div>
   );
-};
-
-const inputStyle = {
-  width: '100%', padding: '0.75rem 1rem',
-  border: '1px solid #ddd', borderRadius: 8,
-  fontSize: '15px', outline: 'none',
-  boxSizing: 'border-box',
-};
-
-const btnStyle = {
-  width: '100%', padding: '0.85rem',
-  background: '#1a1a1a', color: '#fff',
-  border: 'none', borderRadius: 8,
-  fontSize: '15px', fontWeight: 600,
-  cursor: 'pointer',
 };
 
 export default Login;
