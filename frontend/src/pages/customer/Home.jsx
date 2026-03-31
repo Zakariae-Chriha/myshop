@@ -8,155 +8,178 @@ const Home = () => {
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [prodRes, catRes] = await Promise.all([
-          fetch('http://localhost:5000/api/products?limit=6&sort=bestseller'),
-          fetch('http://localhost:5000/api/categories'),
-        ]);
-        const prodData = await prodRes.json();
-        const catData  = await catRes.json();
-        setFeatured(prodData.products   || []);
-        setCategories(catData.categories || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    Promise.all([
+      fetch('http://localhost:5000/api/products?limit=6&sort=bestseller').then(r => r.json()),
+      fetch('http://localhost:5000/api/categories').then(r => r.json()),
+    ]).then(([p, c]) => {
+      setFeatured(p.products   || []);
+      setCategories(c.categories || []);
+    }).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   return (
-    <div>
+    <div style={{ background: 'var(--bg-primary)' }}>
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <section style={{
-        background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 60%, #0F3460 100%)',
-        padding: '5rem 0',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Decorative circles */}
+      {/* ── Hero ──────────────────────────────────────────── */}
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '6rem 0 5rem' }}>
+
+        {/* Background glows */}
         <div style={{
-          position: 'absolute', top: -80, right: -80,
-          width: 300, height: 300, borderRadius: '50%',
-          background: 'rgba(108,99,255,0.15)',
-        }}/>
+          position: 'absolute', top: '-20%', left: '50%',
+          transform: 'translateX(-50%)',
+          width: '600px', height: '400px', borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(108,99,255,0.15) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
         <div style={{
-          position: 'absolute', bottom: -60, left: -60,
-          width: 200, height: 200, borderRadius: '50%',
-          background: 'rgba(255,101,132,0.10)',
-        }}/>
+          position: 'absolute', top: '10%', right: '-10%',
+          width: '400px', height: '400px', borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(255,101,132,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
 
         <div className="container" style={{ position: 'relative', textAlign: 'center' }}>
+
+          {/* Badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-            background: 'rgba(108,99,255,0.2)', color: '#A5B4FC',
-            padding: '0.4rem 1rem', borderRadius: 20,
-            fontSize: '0.85rem', fontWeight: 500, marginBottom: '1.5rem',
+            background: 'rgba(108,99,255,0.12)',
+            border: '1px solid rgba(108,99,255,0.25)',
+            color: '#A5B4FC', padding: '0.4rem 1.1rem',
+            borderRadius: 20, fontSize: '0.82rem', fontWeight: 500,
+            marginBottom: '1.75rem',
+            animation: 'fadeInUp 0.6s ease forwards',
           }}>
-            ⚡ Digital Products — Instant Download
+            ⚡ New products added every week
           </div>
 
+          {/* Heading */}
           <h1 style={{
-            color: '#fff', fontSize: '3rem', fontWeight: 800,
-            marginBottom: '1rem', lineHeight: 1.15,
+            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+            fontWeight: 900, color: '#fff',
+            marginBottom: '1.25rem', lineHeight: 1.1,
+            animation: 'fadeInUp 0.6s 0.1s ease both',
           }}>
-            Learn, Create &<br />
-            <span style={{
-              background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>
-              Grow Your Skills
-            </span>
+            Premium Digital<br />
+            <span className="gradient-text">Products & Courses</span>
           </h1>
 
           <p style={{
-            color: '#94A3B8', fontSize: '1.1rem',
+            color: '#64748B', fontSize: '1.1rem',
             maxWidth: 520, margin: '0 auto 2.5rem',
             lineHeight: 1.7,
+            animation: 'fadeInUp 0.6s 0.2s ease both',
           }}>
-            Premium courses, ebooks, and templates to accelerate your career.
-            Instant access after purchase.
+            Courses, ebooks, templates and tools — instant download after purchase.
+            Trusted by 10,000+ professionals worldwide.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {/* CTA buttons */}
+          <div style={{
+            display: 'flex', gap: '1rem', justifyContent: 'center',
+            flexWrap: 'wrap', marginBottom: '4rem',
+            animation: 'fadeInUp 0.6s 0.3s ease both',
+          }}>
             <Link to="/shop" className="btn btn-primary btn-lg">
               Browse Products →
             </Link>
-            <Link to="/register" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>
-              Join Free
+            <Link to="/register" className="btn btn-ghost btn-lg">
+              Join Free — No Credit Card
             </Link>
           </div>
 
           {/* Stats */}
           <div style={{
-            display: 'flex', gap: '3rem', justifyContent: 'center',
-            marginTop: '3rem', flexWrap: 'wrap',
+            display: 'flex', gap: '0', justifyContent: 'center',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 16, padding: '1.5rem 2rem',
+            maxWidth: 500, margin: '0 auto',
+            flexWrap: 'wrap',
+            animation: 'fadeInUp 0.6s 0.4s ease both',
           }}>
             {[
-              { value: '500+', label: 'Products' },
-              { value: '10k+', label: 'Students' },
-              { value: '4.9★', label: 'Rating' },
-            ].map(({ value, label }) => (
-              <div key={label} style={{ textAlign: 'center' }}>
-                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 800 }}>{value}</div>
-                <div style={{ color: '#64748B', fontSize: '0.875rem' }}>{label}</div>
+              { value: '500+',  label: 'Products',  icon: '🛍️' },
+              { value: '10k+',  label: 'Customers', icon: '👥' },
+              { value: '4.9★', label: 'Rating',    icon: '⭐' },
+            ].map(({ value, label, icon }, i) => (
+              <div key={label} style={{
+                flex: 1, textAlign: 'center', padding: '0 1.5rem',
+                borderRight: i < 2 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+              }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{icon}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>{value}</div>
+                <div style={{ fontSize: '0.75rem', color: '#475569' }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Categories ────────────────────────────────────────── */}
+      {/* ── Categories ────────────────────────────────────── */}
       {categories.length > 0 && (
-        <section className="section" style={{ background: '#F9FAFB' }}>
+        <section style={{ padding: '4rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="container">
             <div className="section-heading">
               <h2>Browse Categories</h2>
               <p>Find exactly what you are looking for</p>
               <div className="underline" />
             </div>
-            <div className="categories-grid">
-              {categories.map((cat, i) => {
-                const emojis = ['💻', '📚', '🎨', '📊', '🎯', '🔧'];
-                const colors = ['#EEF0FF', '#D1FAE5', '#FEF3C7', '#FCE7F3', '#E0F2FE', '#F3E8FF'];
-                return (
-                  <Link key={cat._id} to={`/shop?category=${cat._id}`}>
-                    <div style={{
-                      background: colors[i % colors.length],
-                      borderRadius: 16, padding: '1.5rem 1rem',
-                      textAlign: 'center', cursor: 'pointer',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                      border: '1px solid rgba(0,0,0,0.04)',
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+              gap: '1rem',
+            }}>
+              {categories.map((cat) => (
+                <Link key={cat._id} to={`/shop?category=${cat._id}`}>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 16, padding: '1.5rem 1rem',
+                    textAlign: 'center', cursor: 'pointer',
+                    transition: 'all 0.3s',
+                  }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform   = 'translateY(-4px)';
+                      e.currentTarget.style.borderColor = cat.color || 'rgba(108,99,255,0.4)';
+                      e.currentTarget.style.background  = 'rgba(108,99,255,0.08)';
+                      e.currentTarget.style.boxShadow   = `0 8px 32px ${cat.color || '#6C63FF'}25`;
                     }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                        {emojis[i % emojis.length]}
-                      </div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1F2937' }}>
-                        {cat.name?.en || cat.name}
-                      </div>
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform   = 'translateY(0)';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                      e.currentTarget.style.background  = 'rgba(255,255,255,0.03)';
+                      e.currentTarget.style.boxShadow   = 'none';
+                    }}
+                  >
+                    <div style={{
+                      width: 56, height: 56, borderRadius: '50%',
+                      background: (cat.color || '#6C63FF') + '20',
+                      border: `1px solid ${cat.color || '#6C63FF'}30`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '1.6rem', margin: '0 auto 0.75rem',
+                    }}>
+                      {cat.icon || '📦'}
                     </div>
-                  </Link>
-                );
-              })}
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#F1F5F9', marginBottom: '0.35rem' }}>
+                      {cat.name?.en || cat.name}
+                    </div>
+                    {cat.description?.en && (
+                      <div style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
+                        {cat.description.en}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ── Featured Products ──────────────────────────────────── */}
-      <section className="section">
+      {/* ── Featured Products ──────────────────────────────── */}
+      <section style={{ padding: '4rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container">
           <div className="section-heading">
             <h2>Featured Products</h2>
@@ -174,20 +197,24 @@ const Home = () => {
             <div className="empty-state">
               <div className="icon">📦</div>
               <h3>No products yet</h3>
-              <p>Add products from the admin panel to see them here</p>
+              <p>Add products from the admin panel</p>
             </div>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-            <Link to="/shop" className="btn btn-outline">
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <Link to="/shop" className="btn btn-outline btn-lg">
               View All Products →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Why us ────────────────────────────────────────────── */}
-      <section className="section" style={{ background: '#F9FAFB' }}>
+      {/* ── Why us ────────────────────────────────────────── */}
+      <section style={{
+        padding: '4rem 0',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        background: 'rgba(255,255,255,0.015)',
+      }}>
         <div className="container">
           <div className="section-heading">
             <h2>Why Choose Us</h2>
@@ -196,46 +223,58 @@ const Home = () => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '1.5rem',
+            gap: '1.25rem',
           }}>
             {[
-              { icon: '⚡', title: 'Instant Access', desc: 'Download your products immediately after payment' },
-              { icon: '🔒', title: 'Secure Payment', desc: 'Your payment is encrypted and 100% secure with Stripe' },
-              { icon: '⭐', title: 'Top Quality', desc: 'All products are reviewed and curated by our team' },
-              { icon: '🇩🇪', title: 'Made in Germany', desc: 'Fully compliant with German law and GDPR regulations' },
+              { icon: '⚡', title: 'Instant Access',    desc: 'Download immediately after payment confirmation' },
+              { icon: '🔒', title: 'Secure Payment',    desc: 'All payments encrypted and processed by Stripe' },
+              { icon: '⭐', title: 'Top Quality',       desc: 'All products reviewed and curated by our team' },
+              { icon: '🇩🇪', title: 'German Standards', desc: 'GDPR compliant — your data is always protected' },
             ].map(({ icon, title, desc }) => (
               <div key={title} style={{
-                background: '#fff', borderRadius: 16,
-                padding: '1.75rem', textAlign: 'center',
-                border: '1px solid #F3F4F6',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              }}>
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 16, padding: '1.75rem',
+                textAlign: 'center', transition: 'all 0.3s',
+              }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)';
+                  e.currentTarget.style.background  = 'rgba(108,99,255,0.06)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                  e.currentTarget.style.background  = 'rgba(255,255,255,0.03)';
+                }}
+              >
                 <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{icon}</div>
-                <h4 style={{ marginBottom: '0.5rem', color: '#1F2937' }}>{title}</h4>
-                <p style={{ fontSize: '0.875rem', color: '#6B7280', lineHeight: 1.6 }}>{desc}</p>
+                <h4 style={{ color: '#F1F5F9', marginBottom: '0.5rem' }}>{title}</h4>
+                <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.6 }}>{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA Banner ────────────────────────────────────────── */}
+      {/* ── CTA Banner ────────────────────────────────────── */}
       <section style={{
-        background: 'linear-gradient(135deg, #6C63FF 0%, #FF6584 100%)',
-        padding: '4rem 0', textAlign: 'center',
+        padding: '5rem 0', textAlign: 'center',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        position: 'relative', overflow: 'hidden',
       }}>
-        <div className="container">
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, rgba(108,99,255,0.12) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        <div className="container" style={{ position: 'relative' }}>
           <h2 style={{ color: '#fff', marginBottom: '1rem' }}>
-            Ready to Start Learning?
+            Ready to Level Up Your Skills?
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.85)', marginBottom: '2rem', fontSize: '1.05rem' }}>
-            Join thousands of students and professionals already using our platform
+          <p style={{ color: '#64748B', marginBottom: '2rem', fontSize: '1.05rem' }}>
+            Join thousands of professionals already learning with our platform
           </p>
-          <Link to="/shop" style={{
-            background: '#fff', color: '#6C63FF',
-            padding: '0.85rem 2.5rem', borderRadius: 10,
-            fontWeight: 700, fontSize: '1rem', display: 'inline-block',
-          }}>
+          <Link to="/shop" className="btn btn-primary btn-lg"
+            style={{ display: 'inline-flex' }}>
             Start Shopping →
           </Link>
         </div>

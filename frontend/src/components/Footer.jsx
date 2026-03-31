@@ -3,46 +3,63 @@ import { Link } from 'react-router-dom';
 const Footer = () => {
   return (
     <footer style={{
-      background: '#1A1A2E',
-      color: '#94A3B8',
-      padding: '3rem 0 1.5rem',
-      marginTop: '0',
+      background: '#050510',
+      borderTop: '1px solid rgba(108,99,255,0.15)',
+      padding: '4rem 0 2rem',
+      marginTop: 0,
     }}>
       <div className="container">
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '2rem',
-          marginBottom: '2.5rem',
+          gap: '2.5rem', marginBottom: '3rem',
         }}>
 
           {/* Brand */}
           <div>
             <div style={{
-              fontSize: '1.3rem', fontWeight: 800,
+              fontSize: '1.35rem', fontWeight: 900,
               background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              marginBottom: '0.75rem',
+              marginBottom: '1rem',
             }}>
               DigitalShop
             </div>
-            <p style={{ fontSize: '0.875rem', lineHeight: 1.7 }}>
-              Premium digital products — courses, ebooks, and templates for professionals.
+            <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.7, marginBottom: '1rem' }}>
+              Premium digital products — courses, ebooks, and templates for professionals worldwide.
             </p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {['🐦', '📘', '📸', '💼'].map((icon, i) => (
+                <div key={i} style={{
+                  width: 36, height: 36, borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '14px', cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}>
+                  {icon}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Shop */}
           <div>
-            <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '0.9rem' }}>Shop</h4>
+            <h4 style={{ color: '#F1F5F9', marginBottom: '1rem', fontSize: '0.9rem' }}>Shop</h4>
             {[
-              { to: '/shop',            label: 'All Products' },
+              { to: '/shop',              label: 'All Products' },
               { to: '/shop?type=digital', label: 'Digital Products' },
-              { to: '/track',           label: 'Track Order' },
+              { to: '/shop?type=physical', label: 'Physical Products' },
+              { to: '/track',             label: 'Track Order' },
             ].map(({ to, label }) => (
-              <div key={to} style={{ marginBottom: '0.5rem' }}>
-                <Link to={to} style={{ fontSize: '0.875rem', color: '#64748B', transition: 'color 0.2s' }}
-                  onMouseEnter={e => e.target.style.color = '#fff'}
-                  onMouseLeave={e => e.target.style.color = '#64748B'}>
+              <div key={to} style={{ marginBottom: '0.6rem' }}>
+                <Link to={to} style={{
+                  fontSize: '0.875rem', color: '#475569',
+                  transition: 'color 0.2s',
+                }}
+                  onMouseEnter={e => e.target.style.color = '#A5B4FC'}
+                  onMouseLeave={e => e.target.style.color = '#475569'}>
                   {label}
                 </Link>
               </div>
@@ -51,16 +68,17 @@ const Footer = () => {
 
           {/* Account */}
           <div>
-            <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '0.9rem' }}>Account</h4>
+            <h4 style={{ color: '#F1F5F9', marginBottom: '1rem', fontSize: '0.9rem' }}>Account</h4>
             {[
               { to: '/login',    label: 'Login' },
               { to: '/register', label: 'Register' },
               { to: '/account',  label: 'My Account' },
+              { to: '/account',  label: 'My Orders' },
             ].map(({ to, label }) => (
-              <div key={to} style={{ marginBottom: '0.5rem' }}>
-                <Link to={to} style={{ fontSize: '0.875rem', color: '#64748B' }}
-                  onMouseEnter={e => e.target.style.color = '#fff'}
-                  onMouseLeave={e => e.target.style.color = '#64748B'}>
+              <div key={label} style={{ marginBottom: '0.6rem' }}>
+                <Link to={to} style={{ fontSize: '0.875rem', color: '#475569', transition: 'color 0.2s' }}
+                  onMouseEnter={e => e.target.style.color = '#A5B4FC'}
+                  onMouseLeave={e => e.target.style.color = '#475569'}>
                   {label}
                 </Link>
               </div>
@@ -69,38 +87,48 @@ const Footer = () => {
 
           {/* Legal */}
           <div>
-            <h4 style={{ color: '#fff', marginBottom: '1rem', fontSize: '0.9rem' }}>Legal</h4>
+            <h4 style={{ color: '#F1F5F9', marginBottom: '1rem', fontSize: '0.9rem' }}>Legal</h4>
             {[
               { to: '/impressum',   label: 'Impressum' },
               { to: '/datenschutz', label: 'Datenschutz' },
               { to: '/agb',         label: 'AGB' },
             ].map(({ to, label }) => (
-              <div key={to} style={{ marginBottom: '0.5rem' }}>
-                <Link to={to} style={{ fontSize: '0.875rem', color: '#64748B' }}
-                  onMouseEnter={e => e.target.style.color = '#fff'}
-                  onMouseLeave={e => e.target.style.color = '#64748B'}>
+              <div key={to} style={{ marginBottom: '0.6rem' }}>
+                <Link to={to} style={{ fontSize: '0.875rem', color: '#475569', transition: 'color 0.2s' }}
+                  onMouseEnter={e => e.target.style.color = '#A5B4FC'}
+                  onMouseLeave={e => e.target.style.color = '#475569'}>
                   {label}
                 </Link>
               </div>
             ))}
+
+            {/* Trust badges */}
+            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {[
+                { icon: '🔒', text: 'SSL Encrypted' },
+                { icon: '🇩🇪', text: 'GDPR Compliant' },
+                { icon: '💳', text: 'Secure Payments' },
+              ].map(({ icon, text }) => (
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#475569' }}>
+                  <span>{icon}</span><span>{text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div style={{
-          borderTop: '1px solid #1E293B',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
           paddingTop: '1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem',
         }}>
-          <p style={{ fontSize: '0.8rem' }}>
+          <p style={{ fontSize: '0.8rem', color: '#334155' }}>
             © {new Date().getFullYear()} DigitalShop — All rights reserved
           </p>
-          <p style={{ fontSize: '0.8rem' }}>
-            🇩🇪 Made in Germany — Alle Preise inkl. 19% MwSt.
+          <p style={{ fontSize: '0.8rem', color: '#334155' }}>
+            🇩🇪 Alle Preise inkl. 19% MwSt. · Made in Germany
           </p>
         </div>
       </div>

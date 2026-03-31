@@ -4,7 +4,7 @@ const Category = require('../models/Category');
 const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
 
-// ─── GET /api/categories ─────────────────────────────────────────────────────
+// GET /api/categories
 router.get('/', async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true }).sort('name.en');
@@ -14,20 +14,18 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ─── GET /api/categories/:slug ───────────────────────────────────────────────
+// GET /api/categories/:slug
 router.get('/:slug', async (req, res) => {
   try {
     const category = await Category.findOne({ slug: req.params.slug, isActive: true });
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
+    if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ category });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// ─── POST /api/categories (admin) ────────────────────────────────────────────
+// POST /api/categories (admin)
 router.post('/', protect, isAdmin, async (req, res) => {
   try {
     const category = await Category.create(req.body);
@@ -37,13 +35,11 @@ router.post('/', protect, isAdmin, async (req, res) => {
   }
 });
 
-// ─── PUT /api/categories/:id (admin) ─────────────────────────────────────────
+// PUT /api/categories/:id (admin)
 router.put('/:id', protect, isAdmin, async (req, res) => {
   try {
     const category = await Category.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
+      req.params.id, req.body, { new: true, runValidators: true }
     );
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ message: 'Category updated', category });
@@ -52,15 +48,10 @@ router.put('/:id', protect, isAdmin, async (req, res) => {
   }
 });
 
-// ─── DELETE /api/categories/:id (admin) ──────────────────────────────────────
+// DELETE /api/categories/:id (admin)
 router.delete('/:id', protect, isAdmin, async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    );
-    if (!category) return res.status(404).json({ message: 'Category not found' });
+    await Category.findByIdAndUpdate(req.params.id, { isActive: false });
     res.json({ message: 'Category deactivated' });
   } catch (error) {
     res.status(500).json({ message: error.message });

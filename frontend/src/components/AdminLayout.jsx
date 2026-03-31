@@ -12,6 +12,7 @@ const AdminLayout = ({ children }) => {
   };
 
   const navItems = [
+    { path: '/admin/categories', icon: '🗂️', label: 'Categories' },
     { path: '/admin',            icon: '📊', label: 'Dashboard' },
     { path: '/admin/orders',     icon: '📦', label: 'Orders' },
     { path: '/admin/products',   icon: '🛍️', label: 'Products' },

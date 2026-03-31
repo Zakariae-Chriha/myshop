@@ -24,7 +24,7 @@ app.use('/api/reviews',    require('./routes/reviews'));
 app.use('/api/coupons',    require('./routes/coupons'));
 app.use('/api/payments',   require('./routes/payments'));
 app.use('/api/admin', require('./routes/auth'));
-
+app.use('/api/upload', require('./routes/upload'));
 app.get('/', (req, res) => {
   res.json({ message: 'MyShop API is running!' });
 });
