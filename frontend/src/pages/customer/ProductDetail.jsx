@@ -1,41 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
 
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { id }       = useParams();
+  const navigate     = useNavigate();
   const { addToCart } = useCart();
-  const { user } = useAuth();
 
   const [product,  setProduct]  = useState(null);
-  const [reviews,  setReviews]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [added,    setAdded]    = useState(false);
-
-  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [reviewMsg,  setReviewMsg]  = useState('');
+  const [tab,      setTab]      = useState('description');
 
   useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const [pRes, rRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/products/${id}`),
-          fetch(`http://localhost:5000/api/reviews/${id}`),
-        ]);
-        const pData = await pRes.json();
-        const rData = await rRes.json();
-        setProduct(pData.product);
-        setReviews(rData.reviews || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAll();
+    fetch(`http://localhost:5000/api/products/${id}`)
+      .then(r => r.json())
+      .then(d => setProduct(d.product))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [id]);
 
   const handleAddToCart = () => {
@@ -44,254 +27,239 @@ const ProductDetail = () => {
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const handleReview = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await fetch('http://localhost:5000/api/reviews', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ product: id, ...reviewForm }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setReviewMsg('Review submitted — pending approval');
-        setReviewForm({ rating: 5, comment: '' });
-      } else {
-        setReviewMsg(data.message);
-      }
-    } catch {
-      setReviewMsg('Something went wrong');
-    } finally {
-      setSubmitting(false);
-    }
+  const renderStars = (rating = 0) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span key={i} style={{ color: i < Math.round(rating) ? '#F59E0B' : '#1E293B', fontSize: '1.1rem' }}>★</span>
+    ));
   };
 
-  const renderStars = (r = 0) => '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r));
+  if (loading) return (
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <div className="spinner-wrap"><div className="spinner" /></div>
+    </div>
+  );
 
-  if (loading) return <div className="spinner-wrap"><div className="spinner" /></div>;
   if (!product) return (
-    <div className="container" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
-      <h2>Product not found</h2>
-      <Link to="/shop" className="btn btn-primary" style={{ marginTop: '1rem' }}>Back to Shop</Link>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center', color: '#475569' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
+        <h2 style={{ color: '#F1F5F9', marginBottom: '0.5rem' }}>Product not found</h2>
+        <button onClick={() => navigate('/shop')} className="btn btn-primary" style={{ marginTop: '1rem' }}>
+          Back to Shop
+        </button>
+      </div>
     </div>
   );
 
   const name        = product.name?.en || product.name;
   const description = product.description?.en || product.description;
+  const image       = product.images?.[0];
   const isDigital   = product.productType === 'digital';
 
+  const gradients = [
+    'linear-gradient(135deg, #1e1b4b, #312e81)',
+    'linear-gradient(135deg, #064e3b, #065f46)',
+    'linear-gradient(135deg, #4a1942, #6b21a8)',
+    'linear-gradient(135deg, #1e3a5f, #1e40af)',
+  ];
+  const gradient = gradients[name.length % gradients.length];
+
   return (
-    <div style={{ background: '#F9FAFB', minHeight: '100vh', paddingBottom: '4rem' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '2rem 0' }}>
+      <div className="container">
 
-      {/* Breadcrumb */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #F3F4F6', padding: '0.75rem 0' }}>
-        <div className="container" style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-          <Link to="/" style={{ color: '#6B7280' }}>Home</Link>
-          <span style={{ margin: '0 0.5rem' }}>›</span>
-          <Link to="/shop" style={{ color: '#6B7280' }}>Shop</Link>
-          <span style={{ margin: '0 0.5rem' }}>›</span>
-          <span style={{ color: '#1F2937', fontWeight: 500 }}>{name}</span>
+        {/* Breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem', fontSize: '0.85rem' }}>
+          <span onClick={() => navigate('/')} style={{ color: '#334155', cursor: 'pointer' }}>Home</span>
+          <span style={{ color: '#1E293B' }}>→</span>
+          <span onClick={() => navigate('/shop')} style={{ color: '#334155', cursor: 'pointer' }}>Shop</span>
+          <span style={{ color: '#1E293B' }}>→</span>
+          <span style={{ color: '#A5B4FC' }}>{name}</span>
         </div>
-      </div>
 
-      <div className="container" style={{ padding: '2rem 1.5rem' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '2rem',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
 
           {/* Left — Image */}
           <div>
             <div style={{
-              background: isDigital
-                ? 'linear-gradient(135deg, #EEF0FF, #C7D2FE)'
-                : 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
-              borderRadius: 20, height: 380,
+              borderRadius: 20, overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,0.08)',
+              background: image ? '#000' : gradient,
+              height: 420,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '6rem', position: 'relative',
+              position: 'relative',
             }}>
-              {product.images?.[0] ? (
-                <img src={product.images[0]} alt={name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20 }} />
+              {image ? (
+                <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                isDigital ? '💻' : '📦'
+                <span style={{ fontSize: '8rem', opacity: 0.6 }}>
+                  {isDigital ? '💻' : '📦'}
+                </span>
               )}
+
+              {/* Badge */}
               <span className={`badge ${isDigital ? 'badge-digital' : 'badge-physical'}`}
-                style={{ position: 'absolute', top: 16, left: 16, fontSize: '0.85rem' }}>
-                {isDigital ? '⚡ Digital' : '📦 Physical'}
+                style={{ position: 'absolute', top: 16, left: 16, fontSize: '0.8rem', padding: '5px 14px' }}>
+                {isDigital ? '⚡ Digital Product' : '📦 Physical Product'}
               </span>
+            </div>
+
+            {/* Trust badges */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '0.75rem', marginTop: '1rem',
+            }}>
+              {[
+                { icon: '🔒', text: 'Secure Payment' },
+                { icon: '⚡', text: 'Instant Access' },
+                { icon: '🇩🇪', text: 'GDPR Compliant' },
+              ].map(({ icon, text }) => (
+                <div key={text} style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 10, padding: '0.75rem',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{icon}</div>
+                  <div style={{ fontSize: '0.72rem', color: '#334155' }}>{text}</div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right — Info */}
+          {/* Right — Details */}
           <div>
-            <div style={{ fontSize: '0.8rem', color: '#6B7280', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {product.category?.name?.en}
+            {/* Category */}
+            <div style={{ fontSize: '0.78rem', color: '#6C63FF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
+              {product.category?.name?.en || 'Uncategorized'}
             </div>
 
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.75rem', lineHeight: 1.3 }}>
+            {/* Title */}
+            <h1 style={{ color: '#F1F5F9', fontSize: '2rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '1rem' }}>
               {name}
             </h1>
 
-            {/* Rating */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-              <span className="stars" style={{ fontSize: '1.1rem' }}>{renderStars(product.averageRating)}</span>
-              <span style={{ color: '#6B7280', fontSize: '0.9rem' }}>
-                {product.averageRating?.toFixed(1) || '0.0'} ({product.numReviews || 0} reviews)
-              </span>
+            {/* Stars */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div>{renderStars(product.averageRating)}</div>
+              <span style={{ color: '#F59E0B', fontWeight: 700 }}>{product.averageRating?.toFixed(1) || '0.0'}</span>
+              <span style={{ color: '#334155', fontSize: '0.875rem' }}>({product.numReviews || 0} reviews)</span>
             </div>
 
             {/* Price */}
             <div style={{
-              background: '#EEF0FF', borderRadius: 12,
-              padding: '1rem 1.25rem', marginBottom: '1.5rem',
-              display: 'inline-block',
+              background: 'rgba(108,99,255,0.08)',
+              border: '1px solid rgba(108,99,255,0.2)',
+              borderRadius: 16, padding: '1.25rem',
+              marginBottom: '1.5rem',
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#6C63FF' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff', marginBottom: '0.25rem' }}>
                 €{(product.priceWithVAT || product.price * 1.19).toFixed(2)}
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#6B7280' }}>
-                Net: €{product.price?.toFixed(2)} + 19% VAT (€{(product.price * 0.19).toFixed(2)})
+              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#475569' }}>
+                <span>Net: €{product.price?.toFixed(2)}</span>
+                <span>·</span>
+                <span>VAT (19%): €{((product.priceWithVAT || product.price * 1.19) - product.price).toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Description */}
-            {description && (
-              <p style={{
-                color: '#374151', lineHeight: 1.7,
-                marginBottom: '1.5rem', fontSize: '0.95rem',
-              }}>
-                {description}
-              </p>
-            )}
-
-            {/* Stock for physical */}
-            {!isDigital && (
-              <div style={{ marginBottom: '1.25rem', fontSize: '0.9rem' }}>
-                {product.stock > 0 ? (
-                  <span style={{ color: '#10B981', fontWeight: 600 }}>
-                    ✓ In Stock ({product.stock} available)
-                  </span>
-                ) : (
-                  <span style={{ color: '#EF4444', fontWeight: 600 }}>
-                    ✕ Out of Stock
-                  </span>
-                )}
-              </div>
-            )}
-
             {/* Quantity + Add to cart */}
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
               {!isDigital && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #D1D5DB', background: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}>
-                    −
-                  </button>
-                  <span style={{ width: 32, textAlign: 'center', fontWeight: 600 }}>{quantity}</span>
-                  <button onClick={() => setQuantity(q => q + 1)}
-                    style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid #D1D5DB', background: '#fff', fontSize: '1.1rem', cursor: 'pointer' }}>
-                    +
-                  </button>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#F1F5F9', fontSize: '1.2rem',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>−</button>
+                  <span style={{ color: '#F1F5F9', fontWeight: 700, minWidth: 30, textAlign: 'center', fontSize: '1.1rem' }}>
+                    {quantity}
+                  </span>
+                  <button onClick={() => setQuantity(quantity + 1)} style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#F1F5F9', fontSize: '1.2rem',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>+</button>
                 </div>
               )}
 
-              <button
-                onClick={handleAddToCart}
-                disabled={!isDigital && product.stock === 0}
-                className="btn btn-primary btn-lg"
-                style={{ flex: 1 }}
-              >
-                {added ? '✓ Added to Cart!' : '🛒 Add to Cart'}
+              <button onClick={handleAddToCart} style={{
+                flex: 1, padding: '0.9rem',
+                background: added
+                  ? 'linear-gradient(135deg, #10B981, #059669)'
+                  : 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
+                color: '#fff', border: 'none', borderRadius: 12,
+                fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.3s',
+                boxShadow: added
+                  ? '0 4px 20px rgba(16,185,129,0.35)'
+                  : '0 4px 20px rgba(108,99,255,0.35)',
+              }}>
+                {added ? '✅ Added to Cart!' : '🛒 Add to Cart'}
               </button>
             </div>
 
-            {/* Digital info */}
-            {isDigital && (
+            {/* Stock */}
+            {!isDigital && (
               <div style={{
-                background: '#F0FDF4', border: '1px solid #BBF7D0',
-                borderRadius: 10, padding: '0.85rem 1rem', fontSize: '0.875rem', color: '#065F46',
+                fontSize: '0.85rem', color: product.stock > 10 ? '#10B981' : product.stock > 0 ? '#F59E0B' : '#EF4444',
+                marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
               }}>
-                ⚡ <strong>Instant Download</strong> — You will receive a secure download link by email immediately after payment
+                <span>{product.stock > 0 ? '✅' : '❌'}</span>
+                <span>{product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock} left!` : 'Out of Stock'}</span>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* ── Reviews ─────────────────────────────────────────── */}
-        <div style={{ marginTop: '3rem' }}>
-          <h2 style={{ marginBottom: '1.5rem' }}>
-            Customer Reviews ({reviews.length})
-          </h2>
+            {/* Tabs */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                {['description', 'details'].map(t => (
+                  <button key={t} onClick={() => setTab(t)} style={{
+                    padding: '0.5rem 1.25rem', borderRadius: 8,
+                    background: tab === t ? 'rgba(108,99,255,0.2)' : 'transparent',
+                    color: tab === t ? '#A5B4FC' : '#334155',
+                    border: tab === t ? '1px solid rgba(108,99,255,0.3)' : '1px solid transparent',
+                    fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
+                    textTransform: 'capitalize',
+                  }}>
+                    {t}
+                  </button>
+                ))}
+              </div>
 
-          {reviews.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-              {reviews.map(r => (
-                <div key={r._id} style={{
-                  background: '#fff', borderRadius: 12, padding: '1.25rem',
-                  border: '1px solid #F3F4F6',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <div style={{ fontWeight: 600 }}>{r.user?.name || 'Customer'}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>
-                      {new Date(r.createdAt).toLocaleDateString('de-DE')}
+              {tab === 'description' && (
+                <p style={{ color: '#64748B', lineHeight: 1.8, fontSize: '0.95rem' }}>
+                  {description || 'No description available for this product.'}
+                </p>
+              )}
+
+              {tab === 'details' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {[
+                    { label: 'Type',     value: isDigital ? '⚡ Digital Download' : '📦 Physical Product' },
+                    { label: 'Category', value: product.category?.name?.en || 'Uncategorized' },
+                    { label: 'Format',   value: isDigital ? 'Instant Download' : 'Shipped to your address' },
+                    { label: 'VAT',      value: '19% included in price' },
+                    { label: 'Sold',     value: `${product.totalSold || 0} times` },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{
+                      display: 'flex', justifyContent: 'space-between',
+                      padding: '0.6rem 0',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      fontSize: '0.875rem',
+                    }}>
+                      <span style={{ color: '#334155' }}>{label}</span>
+                      <span style={{ color: '#94A3B8', fontWeight: 500 }}>{value}</span>
                     </div>
-                  </div>
-                  <div className="stars" style={{ marginBottom: '0.5rem' }}>{renderStars(r.rating)}</div>
-                  <p style={{ color: '#374151', fontSize: '0.9rem' }}>{r.comment}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{ color: '#6B7280', marginBottom: '2rem' }}>No reviews yet — be the first!</p>
-          )}
-
-          {/* Write review form */}
-          {user && (
-            <div style={{
-              background: '#fff', borderRadius: 16, padding: '1.5rem',
-              border: '1px solid #F3F4F6',
-            }}>
-              <h3 style={{ marginBottom: '1.25rem' }}>Write a Review</h3>
-              {reviewMsg && (
-                <div className={`alert ${reviewMsg.includes('submitted') ? 'alert-success' : 'alert-error'}`}>
-                  {reviewMsg}
+                  ))}
                 </div>
               )}
-              <form onSubmit={handleReview}>
-                <div className="form-group">
-                  <label className="form-label">Rating</label>
-                  <select
-                    value={reviewForm.rating}
-                    onChange={e => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })}
-                    className="form-select" style={{ width: 'auto' }}
-                  >
-                    {[5,4,3,2,1].map(r => (
-                      <option key={r} value={r}>{'★'.repeat(r)} {r}/5</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Your Review</label>
-                  <textarea
-                    value={reviewForm.comment}
-                    onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                    rows={4} className="form-input"
-                    placeholder="Share your experience with this product..."
-                    style={{ resize: 'vertical' }}
-                  />
-                </div>
-                <button type="submit" disabled={submitting} className="btn btn-primary">
-                  {submitting ? 'Submitting...' : 'Submit Review'}
-                </button>
-              </form>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
