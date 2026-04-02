@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useCart } from '../../context/CartContext';
+import BASE_URL from '../../api/config';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, clearCart } = useCart();
@@ -21,7 +23,7 @@ const Cart = () => {
     setCouponLoading(true);
     setCouponMsg('');
     try {
-      const res  = await fetch(`http://localhost:5000/api/coupons/validate`, {
+      const res  = await fetch(`${BASE_URL}/api/coupons/validate`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ code: couponCode, subtotal }),
@@ -31,12 +33,15 @@ const Cart = () => {
         setDiscount(data.discount);
         setCouponMsg(`✅ Coupon applied! You save €${data.discount.toFixed(2)}`);
         setCouponValid(true);
+        toast.success(`Coupon applied! You save €${data.discount.toFixed(2)}`);
       } else {
         setCouponMsg('❌ ' + (data.message || 'Invalid coupon code'));
         setCouponValid(false);
+        toast.error(data.message || 'Invalid coupon code');
       }
     } catch {
       setCouponMsg('❌ Something went wrong');
+      toast.error('Something went wrong');
     } finally {
       setCouponLoading(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import BASE_URL from '../../api/config';
 
 const statusSteps = ['pending', 'processing', 'shipped', 'delivered'];
 
@@ -22,7 +23,7 @@ const TrackOrder = () => {
     setError('');
     setOrder(null);
     try {
-      const res  = await fetch(`http://localhost:5000/api/orders/track/${trackNum.trim()}`);
+      const res  = await fetch(`${BASE_URL}/api/orders/track/${trackNum.trim()}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       setOrder(data.order);

@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema(
       zip:     { type: String, default: '' },
       country: { type: String, default: 'Germany' },
     },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     isActive:             { type: Boolean, default: true },
     resetPasswordToken:   { type: String },
     resetPasswordExpires: { type: Date },

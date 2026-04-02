@@ -15,9 +15,11 @@ router.get('/', async (req, res) => {
     if (type)     filter.productType = type;
     if (search) {
       filter.$or = [
-        { 'name.en': { $regex: search, $options: 'i' } },
-        { 'name.de': { $regex: search, $options: 'i' } },
-        { 'name.ar': { $regex: search, $options: 'i' } },
+        { 'name.en':        { $regex: search, $options: 'i' } },
+        { 'name.de':        { $regex: search, $options: 'i' } },
+        { 'name.ar':        { $regex: search, $options: 'i' } },
+        { 'description.en': { $regex: search, $options: 'i' } },
+        { 'description.de': { $regex: search, $options: 'i' } },
       ];
     }
 

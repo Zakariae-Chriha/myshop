@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import BASE_URL from '../../api/config';
 
 const emptyForm = {
   code: '', discountType: 'percent', discountValue: '',
@@ -18,7 +19,7 @@ const CouponsManager = () => {
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchCoupons = () => {
-    fetch('http://localhost:5000/api/coupons/admin', { headers })
+    fetch(`${BASE_URL}/api/coupons/admin`, { headers })
       .then(r => r.json())
       .then(d => setCoupons(d.coupons || []))
       .catch(console.error)
@@ -31,7 +32,7 @@ const CouponsManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res  = await fetch('http://localhost:5000/api/coupons/admin', {
+      const res  = await fetch(BASE_URL + '/api/coupons/admin', {
         method: 'POST', headers,
         body: JSON.stringify({ ...form, discountValue: Number(form.discountValue), minOrderAmount: Number(form.minOrderAmount) }),
       });
@@ -50,7 +51,7 @@ const CouponsManager = () => {
   };
 
   const toggleActive = async (id, current) => {
-    await fetch(`http://localhost:5000/api/coupons/admin/${id}`, {
+    await fetch(`${BASE_URL}/api/coupons/admin/${id}`, {
       method: 'PUT', headers,
       body: JSON.stringify({ isActive: !current }),
     });

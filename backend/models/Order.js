@@ -77,6 +77,10 @@ const orderSchema = new mongoose.Schema(
     downloadEmailSent:     { type: Boolean, default: false },
 
     notes: { type: String, default: '' }, // customer notes at checkout
+
+    // Phase 3: customer delivery confirmation
+    deliveryToken:          { type: String, default: '' }, // unique token for confirm-delivery link
+    deliveryConfirmedAt:    { type: Date },                // when customer clicked confirm
   },
   {
     timestamps: true,

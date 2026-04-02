@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import BASE_URL from '../../api/config';
 
 const MyAccount = () => {
   const { user, logout } = useAuth();
@@ -24,7 +26,7 @@ const MyAccount = () => {
   const [saveMsg, setSaveMsg] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/orders/my-orders', {
+    fetch(`${BASE_URL}/api/orders/my-orders`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
     })
       .then(r => r.json())
@@ -38,7 +40,7 @@ const MyAccount = () => {
     setSaving(true);
     setSaveMsg('');
     try {
-      const res  = await fetch('http://localhost:5000/api/auth/me', {
+      const res  = await fetch(BASE_URL + '/api/auth/me', {
         method:  'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body:    JSON.stringify(profile),
@@ -47,11 +49,14 @@ const MyAccount = () => {
       if (res.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
         setSaveMsg('✅ Profile updated successfully!');
+        toast.success('Profile updated successfully!');
       } else {
         setSaveMsg('❌ ' + data.message);
+        toast.error(data.message || 'Update failed');
       }
     } catch {
       setSaveMsg('❌ Something went wrong');
+      toast.error('Something went wrong');
     } finally {
       setSaving(false);
     }

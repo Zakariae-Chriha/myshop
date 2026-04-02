@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import BASE_URL from '../../api/config';
 
 const AdminsManager = () => {
   const [admins,   setAdmins]   = useState([]);
@@ -13,7 +14,7 @@ const AdminsManager = () => {
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchAdmins = () => {
-    fetch('http://localhost:5000/api/admin/admins', { headers })
+    fetch(`${BASE_URL}/api/admin/admins`, { headers })
       .then(r => r.json())
       .then(d => setAdmins(d.admins || []))
       .catch(console.error)
@@ -26,7 +27,7 @@ const AdminsManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res  = await fetch('http://localhost:5000/api/admin/create-admin', {
+      const res  = await fetch(BASE_URL + '/api/admin/create-admin', {
         method: 'POST', headers,
         body: JSON.stringify(form),
       });
@@ -47,7 +48,7 @@ const AdminsManager = () => {
   const handleRemove = async (id, name) => {
     if (!window.confirm(`Remove admin access for ${name}?`)) return;
     try {
-      await fetch(`http://localhost:5000/api/admin/admins/${id}`, {
+      await fetch(`${BASE_URL}/api/admin/admins/${id}`, {
         method: 'DELETE', headers,
       });
       setMsg('Admin removed');

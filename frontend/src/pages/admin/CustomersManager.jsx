@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import BASE_URL from '../../api/config';
 
 const CustomersManager = () => {
   const [customers, setCustomers] = useState([]);
@@ -10,7 +11,7 @@ const CustomersManager = () => {
   const headers = { 'Authorization': `Bearer ${token}` };
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/admin/customers', { headers })
+    fetch(`${BASE_URL}/api/admin/customers`, { headers })
       .then(r => r.json())
       .then(d => setCustomers(d.customers || []))
       .catch(console.error)

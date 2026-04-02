@@ -1,7 +1,8 @@
-const express = require('express');
-const router  = express.Router();
-const Order   = require('../models/Order');
-const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const express     = require('express');
+const router      = express.Router();
+const Order       = require('../models/Order');
+const stripe      = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { protect } = require('../middleware/auth');
 
 router.post('/create-intent', async (req, res) => {
   try {
@@ -17,6 +18,30 @@ router.post('/create-intent', async (req, res) => {
 
     await Order.findByIdAndUpdate(orderId, { stripePaymentIntentId: paymentIntent.id });
     res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/payments/confirm — called by frontend after successful Stripe payment
+router.post('/confirm', protect, async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    // Verify payment with Stripe directly
+    const paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ message: 'Payment not confirmed by Stripe' });
+    }
+
+    await Order.findByIdAndUpdate(orderId, {
+      paymentStatus: 'paid',
+      orderStatus:   'processing',
+    });
+
+    res.json({ message: 'Payment confirmed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import BASE_URL from '../../api/config';
 
 const emptyForm = {
   name:        { en: '', de: '', ar: '' },
@@ -21,7 +22,7 @@ const CategoriesManager = () => {
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchCategories = () => {
-    fetch('http://localhost:5000/api/categories', { headers })
+    fetch(`${BASE_URL}/api/categories`, { headers })
       .then(r => r.json())
       .then(d => setCategories(d.categories || []))
       .catch(console.error)
@@ -34,7 +35,7 @@ const CategoriesManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const url    = editId ? `http://localhost:5000/api/categories/${editId}` : 'http://localhost:5000/api/categories';
+      const url    = editId ? `${BASE_URL}/api/categories/${editId}` : BASE_URL + '/api/categories';
       const method = editId ? 'PUT' : 'POST';
       const res    = await fetch(url, { method, headers, body: JSON.stringify(form) });
       const data   = await res.json();

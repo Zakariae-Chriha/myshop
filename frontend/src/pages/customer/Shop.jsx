@@ -1,23 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
+import BASE_URL from '../../api/config';
+import useSEO from '../../hooks/useSEO';
 
 const Shop = () => {
+  useSEO({ title: 'Shop', description: 'Browse all products — digital downloads and physical goods.' });
   const [searchParams] = useSearchParams();
 
-  const [products,   setProducts]   = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [pagination, setPagination] = useState({});
+  const [products,     setProducts]     = useState([]);
+  const [categories,   setCategories]   = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [pagination,   setPagination]   = useState({});
 
-  const [search,   setSearch]   = useState(searchParams.get('search') || '');
-  const [category, setCategory] = useState(searchParams.get('category') || '');
-  const [type,     setType]     = useState('');
-  const [sort,     setSort]     = useState('newest');
-  const [page,     setPage]     = useState(1);
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [search,      setSearch]      = useState(searchParams.get('search') || '');
+  const [category,    setCategory]    = useState(searchParams.get('category') || '');
+  const [type,        setType]        = useState('');
+  const [sort,        setSort]        = useState('newest');
+  const [page,        setPage]        = useState(1);
+
+  // Debounce search input — wait 400ms after user stops typing
+  const debounceRef = useRef(null);
+  const handleSearchInput = (val) => {
+    setSearchInput(val);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 400);
+  };
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/categories')
+    fetch(`${BASE_URL}/api/categories`)
       .then(r => r.json())
       .then(d => setCategories(d.categories || []));
   }, []);
@@ -32,7 +47,7 @@ const Shop = () => {
     params.set('page',  page);
     params.set('limit', 12);
 
-    fetch(`http://localhost:5000/api/products?${params}`)
+    fetch(`${BASE_URL}/api/products?${params}`)
       .then(r => r.json())
       .then(d => { setProducts(d.products || []); setPagination(d.pagination || {}); })
       .catch(console.error)
@@ -71,8 +86,8 @@ const Shop = () => {
             <input
               type="text"
               placeholder="Search products..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              value={searchInput}
+              onChange={e => handleSearchInput(e.target.value)}
               className="form-input"
               style={{ paddingLeft: '2.25rem' }}
             />
@@ -102,8 +117,8 @@ const Shop = () => {
             <option value="rating">Top Rated</option>
           </select>
 
-          {(search || category || type || sort !== 'newest') && (
-            <button onClick={() => { setSearch(''); setCategory(''); setType(''); setSort('newest'); setPage(1); }}
+          {(searchInput || category || type || sort !== 'newest') && (
+            <button onClick={() => { setSearchInput(''); setSearch(''); setCategory(''); setType(''); setSort('newest'); setPage(1); }}
               style={{
                 padding: '0.6rem 1rem', borderRadius: 8,
                 background: 'rgba(239,68,68,0.1)', color: '#FCA5A5',

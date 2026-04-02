@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
+import BASE_URL from '../../api/config';
+import useSEO from '../../hooks/useSEO';
 
 const Home = () => {
+  useSEO({ title: 'Home', description: 'DigitalShop — Buy premium digital and physical products. Fast delivery, secure payment, GDPR compliant.' });
   const [featured,   setFeatured]   = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:5000/api/products?limit=6&sort=bestseller').then(r => r.json()),
-      fetch('http://localhost:5000/api/categories').then(r => r.json()),
+      fetch(`${BASE_URL}/api/products?limit=6&sort=bestseller`).then(r => r.json()),
+      fetch(`${BASE_URL}/api/categories`).then(r => r.json()),
     ]).then(([p, c]) => {
       setFeatured(p.products   || []);
       setCategories(c.categories || []);

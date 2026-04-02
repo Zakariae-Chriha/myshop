@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import BASE_URL from '../../api/config';
 
 const emptyForm = {
-  name:        { en: '', de: '', ar: '' },
-  description: { en: '', de: '', ar: '' },
-  price:       '',
-  productType: 'digital',
-  category:    '',
-  stock:       999,
-  images:      [],
-  isActive:    true,
+  name:               { en: '', de: '', ar: '' },
+  description:        { en: '', de: '', ar: '' },
+  price:              '',
+  productType:        'digital',
+  category:           '',
+  stock:              999,
+  lowStockThreshold:  5,
+  images:             [],
+  isActive:           true,
 };
 
 const ProductsManager = () => {
@@ -28,8 +30,8 @@ const ProductsManager = () => {
 
   const fetchAll = () => {
     Promise.all([
-      fetch('http://localhost:5000/api/products?limit=50', { headers }).then(r => r.json()),
-      fetch('http://localhost:5000/api/categories').then(r => r.json()),
+      fetch(`${BASE_URL}/api/products?limit=50`, { headers }).then(r => r.json()),
+      fetch(`${BASE_URL}/api/categories`).then(r => r.json()),
     ]).then(([p, c]) => {
       setProducts(p.products || []);
       setCategories(c.categories || []);
@@ -45,7 +47,7 @@ const ProductsManager = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      const res  = await fetch('http://localhost:5000/api/upload/image', {
+      const res  = await fetch(BASE_URL + '/api/upload/image', {
         method:  'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body:    formData,
@@ -69,11 +71,11 @@ const ProductsManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const url    = editId ? `http://localhost:5000/api/products/${editId}` : 'http://localhost:5000/api/products';
+      const url    = editId ? `${BASE_URL}/api/products/${editId}` : BASE_URL + '/api/products';
       const method = editId ? 'PUT' : 'POST';
       const res    = await fetch(url, {
         method, headers,
-        body: JSON.stringify({ ...form, price: Number(form.price), stock: Number(form.stock) }),
+        body: JSON.stringify({ ...form, price: Number(form.price), stock: Number(form.stock), lowStockThreshold: Number(form.lowStockThreshold) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -96,10 +98,11 @@ const ProductsManager = () => {
       description: product.description || { en: '', de: '', ar: '' },
       price:       product.price       || '',
       productType: product.productType || 'digital',
-      category:    product.category?._id || product.category || '',
-      stock:       product.stock       || 0,
-      images:      product.images      || [],
-      isActive:    product.isActive,
+      category:           product.category?._id || product.category || '',
+      stock:              product.stock        || 0,
+      lowStockThreshold:  product.lowStockThreshold ?? 5,
+      images:             product.images       || [],
+      isActive:           product.isActive,
     });
     setEditId(product._id);
     setShowForm(true);
@@ -107,7 +110,7 @@ const ProductsManager = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Deactivate this product?')) return;
-    await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE', headers });
+    await fetch(`${BASE_URL}/api/products/${id}`, { method: 'DELETE', headers });
     setMsg('Product deactivated');
     fetchAll();
     setTimeout(() => setMsg(''), 2000);
@@ -133,7 +136,7 @@ const ProductsManager = () => {
 
         {/* ── Form ──────────────────────────────────────────────── */}
         {showForm && (
-          <div style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid #F3F4F6' }}>
+          <div style={{ background: '#0D0D1A', borderRadius: 16, padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
             <h3 style={{ marginBottom: '1.25rem' }}>{editId ? 'Edit Product' : 'New Product'}</h3>
             <form onSubmit={handleSubmit}>
 
@@ -160,11 +163,11 @@ const ProductsManager = () => {
                   )}
                   <label style={{
                     width: 100, height: 100, borderRadius: 10,
-                    border: '2px dashed #D1D5DB', background: '#F9FAFB',
+                    border: '2px dashed rgba(165,180,252,0.3)', background: '#13131F',
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center',
                     cursor: uploading ? 'not-allowed' : 'pointer',
-                    fontSize: '0.75rem', color: '#6B7280', gap: '0.25rem',
+                    fontSize: '0.75rem', color: '#94A3B8', gap: '0.25rem',
                   }}>
                     <span style={{ fontSize: '1.5rem' }}>📷</span>
                     <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
@@ -176,7 +179,7 @@ const ProductsManager = () => {
                     />
                   </label>
                 </div>
-                <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.35rem' }}>
+                <p style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.35rem' }}>
                   Max 5MB · JPG, PNG, WebP
                 </p>
               </div>
@@ -212,8 +215,8 @@ const ProductsManager = () => {
                 ))}
               </div>
 
-              {/* Price, Type, Category, Stock */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.25rem' }}>
+              {/* Price, Type, Category, Stock, Low Stock Threshold */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div className="form-group">
                   <label className="form-label">Price (€ net)</label>
                   <input type="number" step="0.01" value={form.price}
@@ -246,6 +249,16 @@ const ProductsManager = () => {
                     onChange={e => setForm({ ...form, stock: e.target.value })}
                     className="form-input" />
                 </div>
+                {form.productType === 'physical' && (
+                  <div className="form-group">
+                    <label className="form-label">Low Stock Alert</label>
+                    <input type="number" min="0" value={form.lowStockThreshold}
+                      onChange={e => setForm({ ...form, lowStockThreshold: e.target.value })}
+                      className="form-input"
+                      title="Send alert email when stock drops to or below this number" />
+                    <p style={{ fontSize: '0.7rem', color: '#475569', marginTop: '0.25rem' }}>Alert when stock ≤ this</p>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -266,12 +279,12 @@ const ProductsManager = () => {
         {loading ? (
           <div className="spinner-wrap"><div className="spinner" /></div>
         ) : (
-          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #F3F4F6', overflow: 'hidden' }}>
+          <div style={{ background: '#0D0D1A', borderRadius: 16, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#F9FAFB', borderBottom: '1px solid #F3F4F6' }}>
+                <tr style={{ background: '#13131F', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   {['Image', 'Product', 'Type', 'Price', 'Stock', 'Sold', 'Status', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>{h}</th>
+                    <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -293,7 +306,7 @@ const ProductsManager = () => {
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{product.name?.en}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{product.category?.name?.en}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{product.category?.name?.en}</div>
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <span className={`badge ${product.productType === 'digital' ? 'badge-digital' : 'badge-physical'}`}>
@@ -302,14 +315,33 @@ const ProductsManager = () => {
                     </td>
                     <td style={{ padding: '1rem', fontWeight: 600, color: '#6C63FF' }}>
                       €{product.priceWithVAT?.toFixed(2)}
-                      <div style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>net: €{product.price?.toFixed(2)}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748B' }}>net: €{product.price?.toFixed(2)}</div>
                     </td>
                     <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                      <span style={{ color: product.stock < 5 ? '#EF4444' : '#374151', fontWeight: product.stock < 5 ? 700 : 400 }}>
-                        {product.stock}
-                      </span>
+                      {product.productType === 'physical' ? (
+                        <div>
+                          <span style={{
+                            color: product.stock <= (product.lowStockThreshold || 5) ? '#FCA5A5' : '#F1F5F9',
+                            fontWeight: 700,
+                          }}>
+                            {product.stock}
+                          </span>
+                          {product.stock <= (product.lowStockThreshold || 5) && (
+                            <span style={{
+                              display: 'block', marginTop: 3, fontSize: '0.68rem',
+                              background: 'rgba(239,68,68,0.15)', color: '#FCA5A5',
+                              border: '1px solid rgba(239,68,68,0.3)',
+                              borderRadius: 4, padding: '1px 6px',
+                            }}>
+                              ⚠ Low stock
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#475569' }}>—</span>
+                      )}
                     </td>
-                    <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#374151' }}>{product.totalSold}</td>
+                    <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#F1F5F9' }}>{product.totalSold}</td>
                     <td style={{ padding: '1rem' }}>
                       <span style={{
                         padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600,
@@ -322,11 +354,11 @@ const ProductsManager = () => {
                     <td style={{ padding: '1rem' }}>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button onClick={() => handleEdit(product)}
-                          style={{ padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', background: '#EEF0FF', color: '#6C63FF', border: 'none', cursor: 'pointer' }}>
+                          style={{ padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', background: 'rgba(108,99,255,0.15)', color: '#6C63FF', border: 'none', cursor: 'pointer' }}>
                           Edit
                         </button>
                         <button onClick={() => handleDelete(product._id)}
-                          style={{ padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', background: '#FEF2F2', color: '#DC2626', border: 'none', cursor: 'pointer' }}>
+                          style={{ padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.8rem', background: 'rgba(239,68,68,0.15)', color: '#DC2626', border: 'none', cursor: 'pointer' }}>
                           Delete
                         </button>
                       </div>

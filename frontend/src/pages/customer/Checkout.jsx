@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import BASE_URL from '../../api/config';
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
@@ -17,7 +18,7 @@ const StripePaymentForm = ({ orderId, onSuccess, onError }) => {
     if (!stripe || !elements) return;
     setPaying(true);
     try {
-      const res = await fetch('http://localhost:5000/api/payments/create-intent', {
+      const res = await fetch(`${BASE_URL}/api/payments/create-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ const Checkout = () => {
     setError('');
     try {
       const items = cartItems.map(i => ({ product: i._id, quantity: i.quantity }));
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch(BASE_URL + '/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,16 +145,16 @@ const Checkout = () => {
 
   const handlePaymentSuccess = async () => {
     try {
-      await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
-        method: 'PUT',
+      await fetch(`${BASE_URL}/api/payments/confirm`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ paymentStatus: 'paid', orderStatus: 'processing' }),
+        body: JSON.stringify({ orderId }),
       });
     } catch (err) {
-      console.log('Status update error:', err);
+      console.log('Payment confirm error:', err);
     }
     clearCart();
     navigate('/order-confirm', { state: { order: { orderNumber: orderId, total } } });

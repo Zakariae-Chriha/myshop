@@ -5,6 +5,7 @@ const crypto   = require('crypto');
 const User     = require('../models/User');
 const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
+const { triggerPasswordReset } = require('../utils/n8nWebhook');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -92,11 +93,10 @@ router.post('/forgot-password', async (req, res) => {
       resetPasswordToken:   resetToken,
       resetPasswordExpires: resetExpires,
     });
-    const { triggerN8n } = require('../utils/n8nWebhook');
-    triggerN8n('password_reset', {
+    triggerPasswordReset({
       customerName:  user.name,
       customerEmail: user.email,
-      resetLink:     `http://localhost:3000/reset-password/${resetToken}`,
+      resetLink:     `${process.env.FRONTEND_URL || 'http://localhost:3005'}/reset-password/${resetToken}`,
     });
     res.json({ message: 'Password reset email sent' });
   } catch (error) {
@@ -173,6 +173,37 @@ router.delete('/admins/:id', protect, isAdmin, async (req, res) => {
     }
     await User.findByIdAndUpdate(req.params.id, { role: 'customer' });
     res.json({ message: 'Admin removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── Wishlist ─────────────────────────────────────────────────────────────────
+
+// GET /api/auth/wishlist
+router.get('/wishlist', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate('wishlist');
+    res.json({ wishlist: user.wishlist || [] });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT /api/auth/wishlist/:productId — toggle add/remove
+router.put('/wishlist/:productId', protect, async (req, res) => {
+  try {
+    const user      = await User.findById(req.user._id);
+    const productId = req.params.productId;
+    const idx       = user.wishlist.findIndex(id => id.toString() === productId);
+
+    if (idx === -1) {
+      user.wishlist.push(productId);
+    } else {
+      user.wishlist.splice(idx, 1);
+    }
+    await user.save();
+    res.json({ wishlist: user.wishlist, added: idx === -1 });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

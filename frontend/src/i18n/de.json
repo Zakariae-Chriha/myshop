@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "shop": "Shop",
+    "track": "Bestellung verfolgen",
+    "wishlist": "Wunschliste",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "account": "Mein Konto",
+    "logout": "Abmelden",
+    "admin": "Admin"
+  },
+  "home": {
+    "hero_title": "Premium-Produkte,",
+    "hero_subtitle": "Schnell geliefert",
+    "hero_desc": "Digitale Downloads und physische Waren — sicher, schnell, DSGVO-konform.",
+    "shop_now": "Jetzt einkaufen",
+    "featured": "Empfohlene Produkte",
+    "categories": "Kategorien durchsuchen"
+  },
+  "shop": {
+    "title": "Alle Produkte",
+    "search": "Produkte suchen...",
+    "all_categories": "Alle Kategorien",
+    "all_types": "Alle Typen",
+    "digital": "Digital",
+    "physical": "Physisch",
+    "newest": "Neueste zuerst",
+    "bestseller": "Bestseller",
+    "price_asc": "Preis: Aufsteigend",
+    "price_desc": "Preis: Absteigend",
+    "top_rated": "Bestbewertet",
+    "clear": "Zurücksetzen",
+    "no_products": "Keine Produkte gefunden",
+    "adjust_filters": "Filter anpassen"
+  },
+  "product": {
+    "add_to_cart": "In den Warenkorb",
+    "added": "Hinzugefügt!",
+    "in_stock": "Auf Lager",
+    "out_of_stock": "Nicht vorrätig",
+    "only_left": "Nur noch {{count}} verfügbar!",
+    "description": "Beschreibung",
+    "details": "Details",
+    "reviews": "Bewertungen",
+    "write_review": "Bewertung schreiben",
+    "your_rating": "Ihre Bewertung",
+    "comment": "Kommentar (optional)",
+    "submit_review": "Bewertung absenden",
+    "submitting": "Wird gesendet...",
+    "login_to_review": "Anmelden um zu bewerten",
+    "no_reviews": "Noch keine Bewertungen — seien Sie der Erste!"
+  },
+  "cart": {
+    "title": "Warenkorb",
+    "empty": "Ihr Warenkorb ist leer",
+    "subtotal": "Zwischensumme",
+    "vat": "MwSt. (19%)",
+    "total": "Gesamt",
+    "checkout": "Zur Kasse",
+    "continue": "Weiter einkaufen"
+  },
+  "checkout": {
+    "title": "Kasse",
+    "shipping": "Lieferadresse",
+    "payment": "Zahlungsmethode",
+    "place_order": "Bestellung aufgeben",
+    "continue_payment": "Weiter zur Zahlung",
+    "full_name": "Vollständiger Name",
+    "street": "Straße und Hausnummer",
+    "city": "Stadt",
+    "zip": "Postleitzahl",
+    "country": "Land",
+    "phone": "Telefon",
+    "notes": "Bestellnotizen (optional)"
+  },
+  "account": {
+    "title": "Mein Konto",
+    "orders": "Meine Bestellungen",
+    "wishlist": "Wunschliste",
+    "settings": "Einstellungen"
+  },
+  "common": {
+    "loading": "Wird geladen...",
+    "error": "Etwas ist schiefgelaufen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück"
+  }
+}

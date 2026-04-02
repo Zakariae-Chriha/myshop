@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "track": "Track Order",
+    "wishlist": "Wishlist",
+    "login": "Login",
+    "register": "Register",
+    "account": "My Account",
+    "logout": "Logout",
+    "admin": "Admin"
+  },
+  "home": {
+    "hero_title": "Premium Products,",
+    "hero_subtitle": "Delivered Fast",
+    "hero_desc": "Digital downloads and physical goods — secure, fast, GDPR compliant.",
+    "shop_now": "Shop Now",
+    "featured": "Featured Products",
+    "categories": "Browse Categories"
+  },
+  "shop": {
+    "title": "All Products",
+    "search": "Search products...",
+    "all_categories": "All Categories",
+    "all_types": "All Types",
+    "digital": "Digital",
+    "physical": "Physical",
+    "newest": "Newest First",
+    "bestseller": "Best Sellers",
+    "price_asc": "Price: Low to High",
+    "price_desc": "Price: High to Low",
+    "top_rated": "Top Rated",
+    "clear": "Clear",
+    "no_products": "No products found",
+    "adjust_filters": "Try adjusting your filters"
+  },
+  "product": {
+    "add_to_cart": "Add to Cart",
+    "added": "Added to Cart!",
+    "in_stock": "In Stock",
+    "out_of_stock": "Out of Stock",
+    "only_left": "Only {{count}} left!",
+    "description": "Description",
+    "details": "Details",
+    "reviews": "Reviews",
+    "write_review": "Write a Review",
+    "your_rating": "Your Rating",
+    "comment": "Comment (optional)",
+    "submit_review": "Submit Review",
+    "submitting": "Submitting...",
+    "login_to_review": "Log in to write a review",
+    "no_reviews": "No reviews yet — be the first!"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "vat": "VAT (19%)",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continue": "Continue Shopping"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shipping": "Shipping Address",
+    "payment": "Payment Method",
+    "place_order": "Place Order",
+    "continue_payment": "Continue to Payment",
+    "full_name": "Full Name",
+    "street": "Street Address",
+    "city": "City",
+    "zip": "ZIP Code",
+    "country": "Country",
+    "phone": "Phone",
+    "notes": "Order Notes (optional)"
+  },
+  "account": {
+    "title": "My Account",
+    "orders": "My Orders",
+    "wishlist": "Wishlist",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  }
+}

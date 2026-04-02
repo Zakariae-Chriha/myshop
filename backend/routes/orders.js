@@ -1,5 +1,6 @@
 const express = require('express');
 const router  = express.Router();
+const crypto  = require('crypto');
 const Order   = require('../models/Order');
 const Product = require('../models/Product');
 const Coupon  = require('../models/Coupon');
@@ -70,9 +71,20 @@ router.post('/', protect, async (req, res) => {
 
     for (const item of orderItems) {
       if (item.productType === 'physical') {
-        await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.quantity, totalSold: item.quantity },
-        });
+        const updated = await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { stock: -item.quantity, totalSold: item.quantity } },
+          { new: true }
+        );
+        // Fire low-stock alert if stock fell at or below threshold
+        if (updated && updated.stock <= updated.lowStockThreshold) {
+          triggerN8n('low_stock', {
+            productName:   updated.name.en,
+            currentStock:  updated.stock,
+            threshold:     updated.lowStockThreshold,
+            productId:     updated._id.toString(),
+          });
+        }
       }
     }
 
@@ -123,6 +135,58 @@ router.get('/track/:orderNumber', async (req, res) => {
   }
 });
 
+// GET /api/orders/admin/analytics
+router.get('/admin/analytics', protect, isAdmin, async (req, res) => {
+  try {
+    const days      = 7;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days + 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    // Revenue + order count per day (last 7 days)
+    const daily = await Order.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
+      { $group: {
+        _id:      { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        revenue:  { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0] } },
+        orders:   { $sum: 1 },
+      }},
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Status breakdown
+    const statusBreakdown = await Order.aggregate([
+      { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
+    ]);
+
+    // Top 5 products by revenue
+    const topProducts = await Order.aggregate([
+      { $unwind: '$items' },
+      { $group: {
+        _id:       '$items.name',
+        totalSold: { $sum: '$items.quantity' },
+        revenue:   { $sum: { $multiply: ['$items.priceWithVAT', '$items.quantity'] } },
+      }},
+      { $sort: { revenue: -1 } },
+      { $limit: 5 },
+    ]);
+
+    // Fill missing days with zeros
+    const filledDaily = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const key   = d.toISOString().slice(0, 10);
+      const found = daily.find(x => x._id === key);
+      filledDaily.push({ date: key, revenue: found?.revenue || 0, orders: found?.orders || 0 });
+    }
+
+    res.json({ daily: filledDaily, statusBreakdown, topProducts });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // GET /api/orders/admin/all
 router.get('/admin/all', protect, isAdmin, async (req, res) => {
   try {
@@ -142,6 +206,21 @@ router.get('/admin/all', protect, isAdmin, async (req, res) => {
   }
 });
 
+// GET /api/orders/admin/shipped-followup — orders shipped >3 days, not yet delivered
+router.get('/admin/shipped-followup', protect, isAdmin, async (req, res) => {
+  try {
+    const days    = parseInt(req.query.days) || 3;
+    const cutoff  = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders  = await Order.find({
+      orderStatus: 'shipped',
+      shippedAt:   { $lte: cutoff },
+    }).populate('customer', 'name email').sort({ shippedAt: 1 });
+    res.json({ orders, count: orders.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // PUT /api/orders/admin/:id/status
 router.put('/admin/:id/status', protect, isAdmin, async (req, res) => {
   try {
@@ -149,8 +228,29 @@ router.put('/admin/:id/status', protect, isAdmin, async (req, res) => {
     const update = {};
     if (orderStatus)   update.orderStatus   = orderStatus;
     if (paymentStatus) update.paymentStatus = paymentStatus;
-    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
+
+    // Auto-mark COD orders as paid when delivered
+    if (orderStatus === 'delivered') {
+      update.paymentStatus = 'paid';
+      update.deliveredAt   = new Date();
+    }
+
+    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true })
+      .populate('customer', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    // Trigger delivery confirmation email if delivered
+    if (orderStatus === 'delivered') {
+      triggerN8n('order_delivered', {
+        orderNumber:   order.orderNumber,
+        customerName:  order.customer.name,
+        customerEmail: order.customer.email,
+        total:         order.total,
+        paymentMethod: order.paymentMethod,
+        deliveredAt:   order.deliveredAt,
+      });
+    }
+
     res.json({ message: 'Order status updated', order });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -161,13 +261,49 @@ router.put('/admin/:id/status', protect, isAdmin, async (req, res) => {
 router.put('/admin/:id/tracking', protect, isAdmin, async (req, res) => {
   try {
     const { trackingNumber, trackingCarrier } = req.body;
+    const deliveryToken = crypto.randomBytes(32).toString('hex');
+
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      { trackingNumber, trackingCarrier, orderStatus: 'shipped', shippedAt: new Date() },
+      { trackingNumber, trackingCarrier, orderStatus: 'shipped', shippedAt: new Date(), deliveryToken },
       { new: true }
     ).populate('customer', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    const confirmLink = `${process.env.FRONTEND_URL}/confirm-delivery/${deliveryToken}`;
+    triggerN8n('order_shipped', {
+      orderNumber:   order.orderNumber,
+      customerName:  order.customer.name,
+      customerEmail: order.customer.email,
+      trackingNumber,
+      trackingCarrier,
+      confirmLink,
+      shippedAt:     order.shippedAt,
+    });
+
     res.json({ message: 'Tracking number added', order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/orders/confirm-delivery/:token (public — customer clicks link from email)
+router.get('/confirm-delivery/:token', async (req, res) => {
+  try {
+    const order = await Order.findOne({ deliveryToken: req.params.token });
+    if (!order) return res.status(404).json({ message: 'Invalid or expired link' });
+    if (order.orderStatus === 'delivered') {
+      return res.json({ message: 'Already confirmed', orderNumber: order.orderNumber });
+    }
+
+    order.orderStatus        = 'delivered';
+    order.paymentStatus      = 'paid';
+    order.deliveredAt        = new Date();
+    order.deliveryConfirmedAt = new Date();
+    order.deliveryToken      = ''; // invalidate token
+    await order.save();
+
+    res.json({ message: 'Delivery confirmed', orderNumber: order.orderNumber });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

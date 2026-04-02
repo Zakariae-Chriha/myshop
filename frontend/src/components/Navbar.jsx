@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
   const { totalItems } = useCart();
   const location = useLocation();
   const navigate  = useNavigate();
+  const { i18n }  = useTranslation();
 
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
   const [search,     setSearch]     = useState('');
+
+  const switchLang = (lang) => i18n.changeLanguage(lang);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -63,9 +67,10 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
             className="desktop-nav">
             {[
-              { path: '/',     label: 'Home' },
-              { path: '/shop', label: 'Shop' },
-              { path: '/track', label: 'Track Order' },
+              { path: '/',        label: 'Home' },
+              { path: '/shop',    label: 'Shop' },
+              { path: '/track',   label: 'Track Order' },
+              { path: '/wishlist', label: '♡ Wishlist' },
             ].map(({ path, label }) => (
               <Link key={path} to={path} style={{
                 padding: '0.5rem 0.875rem',
@@ -115,6 +120,21 @@ const Navbar = () => {
 
           {/* Right side */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+
+            {/* Language switcher */}
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {['en', 'de'].map(lang => (
+                <button key={lang} onClick={() => switchLang(lang)} style={{
+                  padding: '0.3rem 0.55rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700,
+                  cursor: 'pointer', border: 'none',
+                  background: i18n.language === lang ? 'rgba(108,99,255,0.25)' : 'transparent',
+                  color: i18n.language === lang ? '#A5B4FC' : '#475569',
+                  transition: 'all 0.2s',
+                }}>
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
 
             {/* Cart */}
             <Link to="/cart" style={{

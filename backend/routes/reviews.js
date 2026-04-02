@@ -43,6 +43,19 @@ router.get('/:productId', async (req, res) => {
   }
 });
 
+// ─── GET /api/reviews/admin/pending (admin) ──────────────────────────────────
+router.get('/admin/pending', protect, isAdmin, async (req, res) => {
+  try {
+    const reviews = await Review.find({ isApproved: false })
+      .populate('user', 'name email')
+      .populate('product', 'name')
+      .sort({ createdAt: -1 });
+    res.json({ reviews });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── PUT /api/admin/reviews/:id/approve (admin) ──────────────────────────────
 router.put('/admin/:id/approve', protect, isAdmin, async (req, res) => {
   try {

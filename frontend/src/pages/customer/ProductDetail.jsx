@@ -1,37 +1,116 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import BASE_URL from '../../api/config';
+import useSEO from '../../hooks/useSEO';
+
+// ─── Star Rating Input ────────────────────────────────────────────────────────
+const StarInput = ({ value, onChange }) => (
+  <div style={{ display: 'flex', gap: '0.25rem' }}>
+    {[1,2,3,4,5].map(star => (
+      <span key={star} onClick={() => onChange(star)} style={{
+        fontSize: '1.5rem', cursor: 'pointer',
+        color: star <= value ? '#F59E0B' : '#1E293B',
+        transition: 'color 0.15s',
+      }}>★</span>
+    ))}
+  </div>
+);
 
 const ProductDetail = () => {
-  const { id }       = useParams();
-  const navigate     = useNavigate();
+  const { id }        = useParams();
+  const navigate      = useNavigate();
   const { addToCart } = useCart();
+  const { user }      = useAuth();
 
-  const [product,  setProduct]  = useState(null);
-  const [loading,  setLoading]  = useState(true);
-  const [quantity, setQuantity] = useState(1);
-  const [added,    setAdded]    = useState(false);
-  const [tab,      setTab]      = useState('description');
+  const [product,   setProduct]   = useState(null);
+  const [loading,   setLoading]   = useState(true);
+  const [quantity,  setQuantity]  = useState(1);
+  const [added,     setAdded]     = useState(false);
+  const [tab,       setTab]       = useState('description');
+  const [wishlisted, setWishlisted] = useState(false);
+
+  // Reviews
+  const [reviews,      setReviews]      = useState([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText,   setReviewText]   = useState('');
+  const [submitting,   setSubmitting]   = useState(false);
+
+  const token   = localStorage.getItem('token');
+  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  useSEO({
+    title: product?.name?.en || 'Product',
+    description: product?.description?.en || '',
+  });
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/products/${id}`)
+    fetch(`${BASE_URL}/api/products/${id}`)
       .then(r => r.json())
       .then(d => setProduct(d.product))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [id]);
+
+    fetch(`${BASE_URL}/api/reviews/${id}`)
+      .then(r => r.json())
+      .then(d => setReviews(d.reviews || []));
+
+    // Check wishlist
+    if (user && token) {
+      fetch(`${BASE_URL}/api/auth/wishlist`, { headers })
+        .then(r => r.json())
+        .then(d => {
+          setWishlisted((d.wishlist || []).some(p => (p._id || p) === id));
+        });
+    }
+  }, [id, user]);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
     setAdded(true);
+    toast.success(`${product.name?.en || 'Item'} added to cart!`);
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const renderStars = (rating = 0) => {
-    return Array.from({ length: 5 }, (_, i) => (
+  const toggleWishlist = async () => {
+    if (!user) { navigate('/login'); return; }
+    try {
+      const res  = await fetch(`${BASE_URL}/api/auth/wishlist/${id}`, { method: 'PUT', headers });
+      const data = await res.json();
+      setWishlisted(data.added);
+      toast.success(data.added ? 'Added to wishlist!' : 'Removed from wishlist');
+    } catch {
+      toast.error('Failed to update wishlist');
+    }
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate('/login'); return; }
+    setSubmitting(true);
+    try {
+      const res  = await fetch(`${BASE_URL}/api/reviews`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ product: id, rating: reviewRating, comment: reviewText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      toast.success('Review submitted — pending approval!');
+      setReviewText('');
+      setReviewRating(5);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderStars = (rating = 0) =>
+    Array.from({ length: 5 }, (_, i) => (
       <span key={i} style={{ color: i < Math.round(rating) ? '#F59E0B' : '#1E293B', fontSize: '1.1rem' }}>★</span>
     ));
-  };
 
   if (loading) return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
@@ -89,15 +168,10 @@ const ProductDetail = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               position: 'relative',
             }}>
-              {image ? (
-                <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <span style={{ fontSize: '8rem', opacity: 0.6 }}>
-                  {isDigital ? '💻' : '📦'}
-                </span>
-              )}
-
-              {/* Badge */}
+              {image
+                ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ fontSize: '8rem', opacity: 0.6 }}>{isDigital ? '💻' : '📦'}</span>
+              }
               <span className={`badge ${isDigital ? 'badge-digital' : 'badge-physical'}`}
                 style={{ position: 'absolute', top: 16, left: 16, fontSize: '0.8rem', padding: '5px 14px' }}>
                 {isDigital ? '⚡ Digital Product' : '📦 Physical Product'}
@@ -105,20 +179,15 @@ const ProductDetail = () => {
             </div>
 
             {/* Trust badges */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '0.75rem', marginTop: '1rem',
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
               {[
                 { icon: '🔒', text: 'Secure Payment' },
                 { icon: '⚡', text: 'Instant Access' },
                 { icon: '🇩🇪', text: 'GDPR Compliant' },
               ].map(({ icon, text }) => (
                 <div key={text} style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 10, padding: '0.75rem',
-                  textAlign: 'center',
+                  background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 10, padding: '0.75rem', textAlign: 'center',
                 }}>
                   <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{icon}</div>
                   <div style={{ fontSize: '0.72rem', color: '#334155' }}>{text}</div>
@@ -129,12 +198,10 @@ const ProductDetail = () => {
 
           {/* Right — Details */}
           <div>
-            {/* Category */}
             <div style={{ fontSize: '0.78rem', color: '#6C63FF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
               {product.category?.name?.en || 'Uncategorized'}
             </div>
 
-            {/* Title */}
             <h1 style={{ color: '#F1F5F9', fontSize: '2rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '1rem' }}>
               {name}
             </h1>
@@ -148,10 +215,8 @@ const ProductDetail = () => {
 
             {/* Price */}
             <div style={{
-              background: 'rgba(108,99,255,0.08)',
-              border: '1px solid rgba(108,99,255,0.2)',
-              borderRadius: 16, padding: '1.25rem',
-              marginBottom: '1.5rem',
+              background: 'rgba(108,99,255,0.08)', border: '1px solid rgba(108,99,255,0.2)',
+              borderRadius: 16, padding: '1.25rem', marginBottom: '1.5rem',
             }}>
               <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff', marginBottom: '0.25rem' }}>
                 €{(product.priceWithVAT || product.price * 1.19).toFixed(2)}
@@ -163,50 +228,56 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Quantity + Add to cart */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+            {/* Quantity + Add to cart + Wishlist */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               {!isDigital && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{
                     width: 40, height: 40, borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#F1F5F9', fontSize: '1.2rem',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#F1F5F9', fontSize: '1.2rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>−</button>
                   <span style={{ color: '#F1F5F9', fontWeight: 700, minWidth: 30, textAlign: 'center', fontSize: '1.1rem' }}>
                     {quantity}
                   </span>
                   <button onClick={() => setQuantity(quantity + 1)} style={{
                     width: 40, height: 40, borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#F1F5F9', fontSize: '1.2rem',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#F1F5F9', fontSize: '1.2rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>+</button>
                 </div>
               )}
 
               <button onClick={handleAddToCart} style={{
                 flex: 1, padding: '0.9rem',
-                background: added
-                  ? 'linear-gradient(135deg, #10B981, #059669)'
-                  : 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
+                background: added ? 'linear-gradient(135deg,#10B981,#059669)' : 'linear-gradient(135deg,#6C63FF,#8B5CF6)',
                 color: '#fff', border: 'none', borderRadius: 12,
-                fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
-                transition: 'all 0.3s',
-                boxShadow: added
-                  ? '0 4px 20px rgba(16,185,129,0.35)'
-                  : '0 4px 20px rgba(108,99,255,0.35)',
+                fontSize: '1rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s',
+                boxShadow: added ? '0 4px 20px rgba(16,185,129,0.35)' : '0 4px 20px rgba(108,99,255,0.35)',
               }}>
                 {added ? '✅ Added to Cart!' : '🛒 Add to Cart'}
+              </button>
+
+              {/* Wishlist button */}
+              <button onClick={toggleWishlist} title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'} style={{
+                width: 46, height: 46, borderRadius: 12, flexShrink: 0,
+                background: wishlisted ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${wishlisted ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                color: wishlisted ? '#FCA5A5' : '#475569',
+                fontSize: '1.3rem', cursor: 'pointer', transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {wishlisted ? '❤️' : '🤍'}
               </button>
             </div>
 
             {/* Stock */}
             {!isDigital && (
               <div style={{
-                fontSize: '0.85rem', color: product.stock > 10 ? '#10B981' : product.stock > 0 ? '#F59E0B' : '#EF4444',
+                fontSize: '0.85rem',
+                color: product.stock > 10 ? '#10B981' : product.stock > 0 ? '#F59E0B' : '#EF4444',
                 marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
               }}>
                 <span>{product.stock > 0 ? '✅' : '❌'}</span>
@@ -216,17 +287,16 @@ const ProductDetail = () => {
 
             {/* Tabs */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                {['description', 'details'].map(t => (
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                {['description', 'details', 'reviews'].map(t => (
                   <button key={t} onClick={() => setTab(t)} style={{
                     padding: '0.5rem 1.25rem', borderRadius: 8,
                     background: tab === t ? 'rgba(108,99,255,0.2)' : 'transparent',
                     color: tab === t ? '#A5B4FC' : '#334155',
                     border: tab === t ? '1px solid rgba(108,99,255,0.3)' : '1px solid transparent',
-                    fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
-                    textTransform: 'capitalize',
+                    fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', textTransform: 'capitalize',
                   }}>
-                    {t}
+                    {t}{t === 'reviews' ? ` (${reviews.length})` : ''}
                   </button>
                 ))}
               </div>
@@ -248,14 +318,78 @@ const ProductDetail = () => {
                   ].map(({ label, value }) => (
                     <div key={label} style={{
                       display: 'flex', justifyContent: 'space-between',
-                      padding: '0.6rem 0',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      padding: '0.6rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
                       fontSize: '0.875rem',
                     }}>
                       <span style={{ color: '#334155' }}>{label}</span>
                       <span style={{ color: '#94A3B8', fontWeight: 500 }}>{value}</span>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {tab === 'reviews' && (
+                <div>
+                  {/* Existing reviews */}
+                  {reviews.length === 0 ? (
+                    <p style={{ color: '#334155', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+                      No reviews yet — be the first!
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                      {reviews.map(r => (
+                        <div key={r._id} style={{
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          borderRadius: 10, padding: '0.875rem',
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                            <span style={{ fontWeight: 600, color: '#94A3B8', fontSize: '0.875rem' }}>{r.user?.name}</span>
+                            <span style={{ fontSize: '0.72rem', color: '#334155' }}>
+                              {new Date(r.createdAt).toLocaleDateString('de-DE')}
+                            </span>
+                          </div>
+                          <div style={{ marginBottom: '0.35rem' }}>{renderStars(r.rating)}</div>
+                          {r.comment && <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>{r.comment}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Submit review form */}
+                  {user ? (
+                    <form onSubmit={submitReview} style={{
+                      background: 'rgba(108,99,255,0.06)',
+                      border: '1px solid rgba(108,99,255,0.15)',
+                      borderRadius: 12, padding: '1.25rem',
+                    }}>
+                      <h4 style={{ color: '#A5B4FC', marginBottom: '1rem', fontSize: '0.95rem' }}>Write a Review</h4>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <label style={{ fontSize: '0.8rem', color: '#475569', display: 'block', marginBottom: '0.4rem' }}>Your Rating</label>
+                        <StarInput value={reviewRating} onChange={setReviewRating} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Comment (optional)</label>
+                        <textarea
+                          value={reviewText}
+                          onChange={e => setReviewText(e.target.value)}
+                          className="form-input" rows={3}
+                          placeholder="Share your experience..."
+                          maxLength={500}
+                          style={{ resize: 'vertical' }}
+                        />
+                      </div>
+                      <button type="submit" disabled={submitting} className="btn btn-primary btn-sm">
+                        {submitting ? 'Submitting...' : 'Submit Review'}
+                      </button>
+                    </form>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '1rem', color: '#475569', fontSize: '0.875rem' }}>
+                      <span onClick={() => navigate('/login')} style={{ color: '#A5B4FC', cursor: 'pointer', textDecoration: 'underline' }}>
+                        Log in
+                      </span> to write a review
+                    </div>
+                  )}
                 </div>
               )}
             </div>

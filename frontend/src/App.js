@@ -1,8 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import ForgotPassword from './pages/customer/ForgotPassword';
-import ResetPassword  from './pages/customer/ResetPassword';
+import ForgotPassword    from './pages/customer/ForgotPassword';
+import ResetPassword     from './pages/customer/ResetPassword';
+import ConfirmDelivery   from './pages/customer/ConfirmDelivery';
+import Wishlist          from './pages/customer/Wishlist';
 import Navbar      from './components/Navbar';
 import Footer      from './components/Footer';
 import CookieBanner from './components/CookieBanner';
@@ -61,6 +64,7 @@ const AppContent = () => {
           <Route path="/checkout"      element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-confirm" element={<ProtectedRoute><OrderConfirm /></ProtectedRoute>} />
           <Route path="/account"       element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
+          <Route path="/wishlist"      element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
 
           <Route path="/admin/login"      element={<AdminLogin />} />
           <Route path="/admin"            element={<AdminRoute><Dashboard /></AdminRoute>} />
@@ -69,8 +73,9 @@ const AppContent = () => {
           <Route path="/admin/customers"  element={<AdminRoute><CustomersManager /></AdminRoute>} />
           <Route path="/admin/coupons"    element={<AdminRoute><CouponsManager /></AdminRoute>} />
           <Route path="/admin/categories" element={<AdminRoute><CategoriesManager /></AdminRoute>} />
-          <Route path="/forgot-password"        element={<ForgotPassword />} />
-<Route path="/reset-password/:token"  element={<ResetPassword />} />
+          <Route path="/forgot-password"           element={<ForgotPassword />} />
+          <Route path="/reset-password/:token"     element={<ResetPassword />} />
+          <Route path="/confirm-delivery/:token"   element={<ConfirmDelivery />} />
 <Route path="/admin/admins" element={<AdminRoute><AdminsManager /></AdminRoute>} />
         </Routes>
       </main>
@@ -84,6 +89,21 @@ const App = () => (
   <AuthProvider>
     <CartProvider>
       <AppContent />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#1E1B4B',
+            color: '#F1F5F9',
+            border: '1px solid rgba(165,180,252,0.2)',
+            borderRadius: '10px',
+            fontSize: '0.875rem',
+          },
+          success: { iconTheme: { primary: '#A5B4FC', secondary: '#1E1B4B' } },
+          error:   { iconTheme: { primary: '#FF6584', secondary: '#1E1B4B' } },
+        }}
+      />
     </CartProvider>
   </AuthProvider>
 );
