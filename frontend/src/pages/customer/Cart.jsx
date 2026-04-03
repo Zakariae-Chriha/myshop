@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import BASE_URL from '../../api/config';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, subtotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const { t }    = useTranslation();
 
   const [couponCode,    setCouponCode]    = useState('');
   const [discount,      setDiscount]      = useState(0);
@@ -55,9 +57,9 @@ const Cart = () => {
       }}>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>🛒</div>
-          <h2 style={{ color: '#F1F5F9', marginBottom: '0.75rem' }}>Your cart is empty</h2>
+          <h2 style={{ color: '#F1F5F9', marginBottom: '0.75rem' }}>{t('cart.empty')}</h2>
           <p style={{ color: '#475569', marginBottom: '2rem' }}>
-            Discover our premium digital products
+            {t('cart.empty_desc')}
           </p>
           <Link to="/shop" className="btn btn-primary btn-lg">
             Browse Products →
@@ -73,8 +75,8 @@ const Cart = () => {
 
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ color: '#F1F5F9', marginBottom: '0.25rem' }}>Shopping Cart</h1>
-          <p style={{ color: '#475569' }}>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
+          <h1 style={{ color: '#F1F5F9', marginBottom: '0.25rem' }}>{t('cart.title')}</h1>
+          <p style={{ color: '#475569' }}>{cartItems.length} {t('cart.items')} {t('cart.in_cart')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
@@ -184,7 +186,7 @@ const Cart = () => {
               padding: '0.5rem 0',
               textDecoration: 'underline',
             }}>
-              Clear cart
+              {t('cart.clear_cart')}
             </button>
           </div>
 
@@ -195,7 +197,7 @@ const Cart = () => {
             borderRadius: 20, padding: '1.75rem',
             position: 'sticky', top: 80,
           }}>
-            <h3 style={{ color: '#F1F5F9', marginBottom: '1.5rem' }}>Order Summary</h3>
+            <h3 style={{ color: '#F1F5F9', marginBottom: '1.5rem' }}>{t('cart.order_summary')}</h3>
 
             {/* Items breakdown */}
             <div style={{ marginBottom: '1.25rem' }}>
@@ -216,24 +218,24 @@ const Cart = () => {
 
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                <span style={{ color: '#64748B' }}>Subtotal (net)</span>
+                <span style={{ color: '#64748B' }}>{t('cart.subtotal')}</span>
                 <span style={{ color: '#94A3B8' }}>€{discountedSubtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                  <span style={{ color: '#10B981' }}>Discount</span>
+                  <span style={{ color: '#10B981' }}>{t('cart.discount')}</span>
                   <span style={{ color: '#10B981' }}>-€{discount.toFixed(2)}</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.875rem' }}>
-                <span style={{ color: '#475569' }}>VAT (19%)</span>
+                <span style={{ color: '#475569' }}>{t('cart.vat')}</span>
                 <span style={{ color: '#475569' }}>€{vatAmount.toFixed(2)}</span>
               </div>
               <div style={{
                 display: 'flex', justifyContent: 'space-between',
                 paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.08)',
               }}>
-                <span style={{ fontWeight: 700, color: '#F1F5F9', fontSize: '1rem' }}>Total</span>
+                <span style={{ fontWeight: 700, color: '#F1F5F9', fontSize: '1rem' }}>{t('cart.total')}</span>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 800, color: '#A5B4FC', fontSize: '1.25rem' }}>
                     €{total.toFixed(2)}
@@ -248,7 +250,7 @@ const Cart = () => {
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="text"
-                  placeholder="Coupon code"
+                  placeholder={t('cart.coupon_placeholder')}
                   value={couponCode}
                   onChange={e => setCouponCode(e.target.value.toUpperCase())}
                   className="form-input"
@@ -258,7 +260,7 @@ const Cart = () => {
                 <button onClick={applyCoupon} disabled={couponLoading || couponValid}
                   className="btn btn-outline btn-sm"
                   style={{ flexShrink: 0 }}>
-                  {couponLoading ? '...' : 'Apply'}
+                  {couponLoading ? '...' : t('cart.apply')}
                 </button>
               </div>
               {couponMsg && (
@@ -275,7 +277,7 @@ const Cart = () => {
             <button onClick={() => navigate('/checkout', { state: { couponCode, discount } })}
               className="btn btn-primary btn-full btn-lg"
               style={{ marginBottom: '0.75rem' }}>
-              Proceed to Checkout →
+              {t('cart.checkout')}
             </button>
 
             <Link to="/shop" style={{
@@ -283,7 +285,7 @@ const Cart = () => {
               fontSize: '0.875rem', color: '#475569',
               padding: '0.5rem',
             }}>
-              ← Continue Shopping
+              {t('cart.continue')}
             </Link>
 
             {/* Trust badges */}

@@ -17,16 +17,15 @@ const Footer = () => {
 
           {/* Brand */}
           <div>
-            <div style={{
-              fontSize: '1.35rem', fontWeight: 900,
-              background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              marginBottom: '1rem',
-            }}>
-              DigitalShop
+            <div style={{ marginBottom: '1rem' }}>
+              <img
+                src="/logo.png"
+                alt="ZC Brands"
+                style={{ height: 50, width: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }}
+              />
             </div>
             <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.7, marginBottom: '1rem' }}>
-              Premium digital products — courses, ebooks, and templates for professionals worldwide.
+              Selected German Quality — premium digital and physical products for professionals worldwide.
             </p>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               {['🐦', '📘', '📸', '💼'].map((icon, i) => (
@@ -125,7 +124,7 @@ const Footer = () => {
           alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem',
         }}>
           <p style={{ fontSize: '0.8rem', color: '#334155' }}>
-            © {new Date().getFullYear()} DigitalShop — All rights reserved
+            © {new Date().getFullYear()} ZC Brands — All rights reserved
           </p>
           <p style={{ fontSize: '0.8rem', color: '#334155' }}>
             🇩🇪 Alle Preise inkl. 19% MwSt. · Made in Germany

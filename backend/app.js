@@ -1,7 +1,9 @@
 require('dotenv').config();
-const express   = require('express');
-const cors      = require('cors');
-const rateLimit = require('express-rate-limit');
+const express        = require('express');
+const cors           = require('cors');
+const rateLimit      = require('express-rate-limit');
+const helmet         = require('helmet');
+const cookieParser   = require('cookie-parser');
 
 const app = express();
 
@@ -27,6 +29,10 @@ const apiLimiter = rateLimit({
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow images from frontend
+  contentSecurityPolicy: false, // managed by frontend
+}));
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(cors({
   origin: (origin, callback) => {
@@ -45,7 +51,8 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-if (process.env.NODE_ENV !== 'test') {
+app.use(cookieParser());
+if (process.env.NODE_ENV === 'production') {
   app.use('/api/auth', authLimiter);
   app.use('/api', apiLimiter);
 }
@@ -66,9 +73,61 @@ app.use('/api/coupons',    require('./routes/coupons'));
 app.use('/api/payments',   require('./routes/payments'));
 app.use('/api/admin',      require('./routes/auth'));
 app.use('/api/upload',     require('./routes/upload'));
+app.use('/api/oauth',      require('./routes/oauth'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'MyShop API is running!' });
+});
+
+// ─── Sitemap ─────────────────────────────────────────────────────────────────
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const Product  = require('./models/Product');
+    const Category = require('./models/Category');
+    const base     = process.env.FRONTEND_URL || 'http://localhost:3005';
+
+    const [products, categories] = await Promise.all([
+      Product.find({ isActive: true }).select('_id updatedAt').lean(),
+      Category.find().select('slug updatedAt').lean(),
+    ]);
+
+    const staticPages = ['', '/shop', '/track', '/cart'];
+    const now = new Date().toISOString().slice(0, 10);
+
+    const urls = [
+      ...staticPages.map(path => `
+  <url>
+    <loc>${base}${path}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>${path === '' ? '1.0' : '0.8'}</priority>
+  </url>`),
+      ...categories.map(c => `
+  <url>
+    <loc>${base}/shop?category=${c._id}</loc>
+    <lastmod>${c.updatedAt?.toISOString().slice(0, 10) || now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`),
+      ...products.map(p => `
+  <url>
+    <loc>${base}/product/${p._id}</loc>
+    <lastmod>${p.updatedAt?.toISOString().slice(0, 10) || now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`),
+    ];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join('')}
+</urlset>`;
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Sitemap error');
+  }
 });
 
 app.use((err, req, res, next) => {

@@ -110,10 +110,13 @@ const ProductsManager = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Deactivate this product?')) return;
-    await fetch(`${BASE_URL}/api/products/${id}`, { method: 'DELETE', headers });
-    setMsg('Product deactivated');
-    fetchAll();
-    setTimeout(() => setMsg(''), 2000);
+    try {
+      const res = await fetch(`${BASE_URL}/api/products/${id}`, { method: 'DELETE', headers });
+      if (!res.ok) { const d = await res.json(); setMsg(d.message || 'Failed'); return; }
+      setMsg('Product deactivated');
+      fetchAll();
+      setTimeout(() => setMsg(''), 2000);
+    } catch { setMsg('Network error'); }
   };
 
   return (

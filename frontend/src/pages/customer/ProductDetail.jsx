@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import BASE_URL from '../../api/config';
 import useSEO from '../../hooks/useSEO';
 
-// ─── Star Rating Input ────────────────────────────────────────────────────────
 const StarInput = ({ value, onChange }) => (
   <div style={{ display: 'flex', gap: '0.25rem' }}>
     {[1,2,3,4,5].map(star => (
@@ -24,26 +24,31 @@ const ProductDetail = () => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
   const { user }      = useAuth();
+  const { t, i18n }   = useTranslation();
 
-  const [product,   setProduct]   = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [quantity,  setQuantity]  = useState(1);
-  const [added,     setAdded]     = useState(false);
-  const [tab,       setTab]       = useState('description');
+  const [product,    setProduct]    = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [quantity,   setQuantity]   = useState(1);
+  const [added,      setAdded]      = useState(false);
+  const [tab,        setTab]        = useState('description');
   const [wishlisted, setWishlisted] = useState(false);
 
-  // Reviews
   const [reviews,      setReviews]      = useState([]);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText,   setReviewText]   = useState('');
   const [submitting,   setSubmitting]   = useState(false);
+  const [zoomed,       setZoomed]       = useState(false);
 
   const token   = localStorage.getItem('token');
   const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
+  // Pick the right language for product name/description
+  const lang = i18n.language?.startsWith('ar') ? 'ar' : i18n.language?.startsWith('de') ? 'de' : 'en';
+
   useSEO({
-    title: product?.name?.en || 'Product',
-    description: product?.description?.en || '',
+    title:       product?.name?.[lang] || product?.name?.en || 'Product',
+    description: product?.description?.[lang] || product?.description?.en || '',
+    image:       product?.images?.[0],
   });
 
   useEffect(() => {
@@ -57,7 +62,6 @@ const ProductDetail = () => {
       .then(r => r.json())
       .then(d => setReviews(d.reviews || []));
 
-    // Check wishlist
     if (user && token) {
       fetch(`${BASE_URL}/api/auth/wishlist`, { headers })
         .then(r => r.json())
@@ -80,7 +84,7 @@ const ProductDetail = () => {
       const res  = await fetch(`${BASE_URL}/api/auth/wishlist/${id}`, { method: 'PUT', headers });
       const data = await res.json();
       setWishlisted(data.added);
-      toast.success(data.added ? 'Added to wishlist!' : 'Removed from wishlist');
+      toast.success(data.added ? t('product.wishlist_add') : t('product.wishlist_remove'));
     } catch {
       toast.error('Failed to update wishlist');
     }
@@ -124,14 +128,14 @@ const ProductDetail = () => {
         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😕</div>
         <h2 style={{ color: '#F1F5F9', marginBottom: '0.5rem' }}>Product not found</h2>
         <button onClick={() => navigate('/shop')} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-          Back to Shop
+          {t('common.back')}
         </button>
       </div>
     </div>
   );
 
-  const name        = product.name?.en || product.name;
-  const description = product.description?.en || product.description;
+  const name        = product.name?.[lang] || product.name?.en || product.name;
+  const description = product.description?.[lang] || product.description?.en || product.description;
   const image       = product.images?.[0];
   const isDigital   = product.productType === 'digital';
 
@@ -143,15 +147,21 @@ const ProductDetail = () => {
   ];
   const gradient = gradients[name.length % gradients.length];
 
+  const tabLabels = {
+    description: t('product.description'),
+    details:     t('product.details'),
+    reviews:     t('product.reviews'),
+  };
+
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '2rem 0' }}>
       <div className="container">
 
         {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem', fontSize: '0.85rem' }}>
-          <span onClick={() => navigate('/')} style={{ color: '#334155', cursor: 'pointer' }}>Home</span>
+          <span onClick={() => navigate('/')} style={{ color: '#334155', cursor: 'pointer' }}>{t('nav.home')}</span>
           <span style={{ color: '#1E293B' }}>→</span>
-          <span onClick={() => navigate('/shop')} style={{ color: '#334155', cursor: 'pointer' }}>Shop</span>
+          <span onClick={() => navigate('/shop')} style={{ color: '#334155', cursor: 'pointer' }}>{t('nav.shop')}</span>
           <span style={{ color: '#1E293B' }}>→</span>
           <span style={{ color: '#A5B4FC' }}>{name}</span>
         </div>
@@ -160,30 +170,67 @@ const ProductDetail = () => {
 
           {/* Left — Image */}
           <div>
-            <div style={{
-              borderRadius: 20, overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.08)',
-              background: image ? '#000' : gradient,
-              height: 420,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              position: 'relative',
-            }}>
+            {/* Lightbox overlay */}
+            {zoomed && image && (
+              <div onClick={() => setZoomed(false)} style={{
+                position: 'fixed', inset: 0, zIndex: 9999,
+                background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'zoom-out',
+              }}>
+                <img src={image} alt={name} style={{
+                  maxWidth: '90vw', maxHeight: '90vh',
+                  objectFit: 'contain', borderRadius: 12,
+                  boxShadow: '0 0 80px rgba(108,99,255,0.3)',
+                }} />
+                <button onClick={() => setZoomed(false)} style={{
+                  position: 'absolute', top: 20, right: 24,
+                  background: 'rgba(255,255,255,0.1)', border: 'none',
+                  color: '#fff', fontSize: '1.5rem', cursor: 'pointer',
+                  width: 44, height: 44, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>✕</button>
+              </div>
+            )}
+
+            <div
+              onClick={() => image && setZoomed(true)}
+              style={{
+                borderRadius: 20, overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: image ? '#000' : gradient,
+                height: 420,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative',
+                cursor: image ? 'zoom-in' : 'default',
+              }}>
               {image
-                ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                    onMouseEnter={e => e.target.style.transform = 'scale(1.04)'}
+                    onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                  />
                 : <span style={{ fontSize: '8rem', opacity: 0.6 }}>{isDigital ? '💻' : '📦'}</span>
               }
+              {image && (
+                <div style={{
+                  position: 'absolute', bottom: 12, right: 12,
+                  background: 'rgba(0,0,0,0.55)', borderRadius: 8,
+                  padding: '4px 10px', fontSize: '0.72rem', color: '#94A3B8',
+                  backdropFilter: 'blur(4px)',
+                }}>🔍 Click to zoom</div>
+              )}
               <span className={`badge ${isDigital ? 'badge-digital' : 'badge-physical'}`}
                 style={{ position: 'absolute', top: 16, left: 16, fontSize: '0.8rem', padding: '5px 14px' }}>
-                {isDigital ? '⚡ Digital Product' : '📦 Physical Product'}
+                {isDigital ? `⚡ ${t('product.digital_product')}` : `📦 ${t('product.digital_product')}`}
               </span>
             </div>
 
             {/* Trust badges */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
               {[
-                { icon: '🔒', text: 'Secure Payment' },
-                { icon: '⚡', text: 'Instant Access' },
-                { icon: '🇩🇪', text: 'GDPR Compliant' },
+                { icon: '🔒', text: t('home.secure_title') },
+                { icon: '⚡', text: t('product.instant_delivery') },
+                { icon: '🇩🇪', text: t('home.german_title') },
               ].map(({ icon, text }) => (
                 <div key={text} style={{
                   background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
@@ -210,7 +257,7 @@ const ProductDetail = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
               <div>{renderStars(product.averageRating)}</div>
               <span style={{ color: '#F59E0B', fontWeight: 700 }}>{product.averageRating?.toFixed(1) || '0.0'}</span>
-              <span style={{ color: '#334155', fontSize: '0.875rem' }}>({product.numReviews || 0} reviews)</span>
+              <span style={{ color: '#334155', fontSize: '0.875rem' }}>({product.numReviews || 0} {t('product.reviews')})</span>
             </div>
 
             {/* Price */}
@@ -224,7 +271,7 @@ const ProductDetail = () => {
               <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#475569' }}>
                 <span>Net: €{product.price?.toFixed(2)}</span>
                 <span>·</span>
-                <span>VAT (19%): €{((product.priceWithVAT || product.price * 1.19) - product.price).toFixed(2)}</span>
+                <span>{t('cart.vat')}: €{((product.priceWithVAT || product.price * 1.19) - product.price).toFixed(2)}</span>
               </div>
             </div>
 
@@ -257,11 +304,10 @@ const ProductDetail = () => {
                 fontSize: '1rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s',
                 boxShadow: added ? '0 4px 20px rgba(16,185,129,0.35)' : '0 4px 20px rgba(108,99,255,0.35)',
               }}>
-                {added ? '✅ Added to Cart!' : '🛒 Add to Cart'}
+                {added ? `✅ ${t('product.added')}` : `🛒 ${t('product.add_to_cart')}`}
               </button>
 
-              {/* Wishlist button */}
-              <button onClick={toggleWishlist} title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'} style={{
+              <button onClick={toggleWishlist} title={wishlisted ? t('product.wishlist_remove') : t('product.wishlist_add')} style={{
                 width: 46, height: 46, borderRadius: 12, flexShrink: 0,
                 background: wishlisted ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
                 border: `1px solid ${wishlisted ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)'}`,
@@ -281,22 +327,28 @@ const ProductDetail = () => {
                 marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
               }}>
                 <span>{product.stock > 0 ? '✅' : '❌'}</span>
-                <span>{product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock} left!` : 'Out of Stock'}</span>
+                <span>
+                  {product.stock > 10
+                    ? t('product.in_stock')
+                    : product.stock > 0
+                      ? t('product.only_left', { count: product.stock })
+                      : t('product.out_of_stock')}
+                </span>
               </div>
             )}
 
             {/* Tabs */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-                {['description', 'details', 'reviews'].map(t => (
-                  <button key={t} onClick={() => setTab(t)} style={{
+                {['description', 'details', 'reviews'].map(key => (
+                  <button key={key} onClick={() => setTab(key)} style={{
                     padding: '0.5rem 1.25rem', borderRadius: 8,
-                    background: tab === t ? 'rgba(108,99,255,0.2)' : 'transparent',
-                    color: tab === t ? '#A5B4FC' : '#334155',
-                    border: tab === t ? '1px solid rgba(108,99,255,0.3)' : '1px solid transparent',
-                    fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', textTransform: 'capitalize',
+                    background: tab === key ? 'rgba(108,99,255,0.2)' : 'transparent',
+                    color: tab === key ? '#A5B4FC' : '#334155',
+                    border: tab === key ? '1px solid rgba(108,99,255,0.3)' : '1px solid transparent',
+                    fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer',
                   }}>
-                    {t}{t === 'reviews' ? ` (${reviews.length})` : ''}
+                    {tabLabels[key]}{key === 'reviews' ? ` (${reviews.length})` : ''}
                   </button>
                 ))}
               </div>
@@ -310,11 +362,11 @@ const ProductDetail = () => {
               {tab === 'details' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {[
-                    { label: 'Type',     value: isDigital ? '⚡ Digital Download' : '📦 Physical Product' },
-                    { label: 'Category', value: product.category?.name?.en || 'Uncategorized' },
-                    { label: 'Format',   value: isDigital ? 'Instant Download' : 'Shipped to your address' },
-                    { label: 'VAT',      value: '19% included in price' },
-                    { label: 'Sold',     value: `${product.totalSold || 0} times` },
+                    { label: t('product.details'), value: isDigital ? `⚡ ${t('product.digital_product')}` : `📦 ${t('product.digital_product')}` },
+                    { label: 'Category',           value: product.category?.name?.en || 'Uncategorized' },
+                    { label: t('product.instant_delivery'), value: isDigital ? t('product.instant_delivery') : 'Shipped to your address' },
+                    { label: t('cart.vat'),        value: '19% included in price' },
+                    { label: 'Sold',               value: `${product.totalSold || 0} times` },
                   ].map(({ label, value }) => (
                     <div key={label} style={{
                       display: 'flex', justifyContent: 'space-between',
@@ -330,10 +382,9 @@ const ProductDetail = () => {
 
               {tab === 'reviews' && (
                 <div>
-                  {/* Existing reviews */}
                   {reviews.length === 0 ? (
                     <p style={{ color: '#334155', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-                      No reviews yet — be the first!
+                      {t('product.no_reviews')}
                     </p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -356,20 +407,19 @@ const ProductDetail = () => {
                     </div>
                   )}
 
-                  {/* Submit review form */}
                   {user ? (
                     <form onSubmit={submitReview} style={{
                       background: 'rgba(108,99,255,0.06)',
                       border: '1px solid rgba(108,99,255,0.15)',
                       borderRadius: 12, padding: '1.25rem',
                     }}>
-                      <h4 style={{ color: '#A5B4FC', marginBottom: '1rem', fontSize: '0.95rem' }}>Write a Review</h4>
+                      <h4 style={{ color: '#A5B4FC', marginBottom: '1rem', fontSize: '0.95rem' }}>{t('product.write_review')}</h4>
                       <div style={{ marginBottom: '0.75rem' }}>
-                        <label style={{ fontSize: '0.8rem', color: '#475569', display: 'block', marginBottom: '0.4rem' }}>Your Rating</label>
+                        <label style={{ fontSize: '0.8rem', color: '#475569', display: 'block', marginBottom: '0.4rem' }}>{t('product.your_rating')}</label>
                         <StarInput value={reviewRating} onChange={setReviewRating} />
                       </div>
                       <div className="form-group">
-                        <label className="form-label">Comment (optional)</label>
+                        <label className="form-label">{t('product.comment')}</label>
                         <textarea
                           value={reviewText}
                           onChange={e => setReviewText(e.target.value)}
@@ -380,14 +430,14 @@ const ProductDetail = () => {
                         />
                       </div>
                       <button type="submit" disabled={submitting} className="btn btn-primary btn-sm">
-                        {submitting ? 'Submitting...' : 'Submit Review'}
+                        {submitting ? t('product.submitting') : t('product.submit_review')}
                       </button>
                     </form>
                   ) : (
                     <div style={{ textAlign: 'center', padding: '1rem', color: '#475569', fontSize: '0.875rem' }}>
                       <span onClick={() => navigate('/login')} style={{ color: '#A5B4FC', cursor: 'pointer', textDecoration: 'underline' }}>
-                        Log in
-                      </span> to write a review
+                        {t('product.login_to_review')}
+                      </span>
                     </div>
                   )}
                 </div>

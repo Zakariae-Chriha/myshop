@@ -51,11 +51,13 @@ const CouponsManager = () => {
   };
 
   const toggleActive = async (id, current) => {
-    await fetch(`${BASE_URL}/api/coupons/admin/${id}`, {
-      method: 'PUT', headers,
-      body: JSON.stringify({ isActive: !current }),
-    });
-    fetchCoupons();
+    try {
+      await fetch(`${BASE_URL}/api/coupons/admin/${id}`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ isActive: !current }),
+      });
+      fetchCoupons();
+    } catch { /* ignore network errors */ }
   };
 
   return (

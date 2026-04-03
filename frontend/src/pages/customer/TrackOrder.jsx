@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import BASE_URL from '../../api/config';
 
 const statusSteps = ['pending', 'processing', 'shipped', 'delivered'];
 
 const TrackOrder = () => {
+  const { t } = useTranslation();
   const [searchParams]  = useSearchParams();
   const [orderNumber,   setOrderNumber]   = useState(searchParams.get('order') || '');
   const [order,         setOrder]         = useState(null);
@@ -28,21 +30,25 @@ const TrackOrder = () => {
       if (!res.ok) throw new Error(data.message);
       setOrder(data.order);
     } catch (err) {
-      setError(err.message || 'Order not found');
+      setError(err.message || t('track.not_found'));
     } finally {
       setLoading(false);
     }
   };
 
   const currentStep = order ? statusSteps.indexOf(order.orderStatus) : -1;
-
-  const stepIcons = { pending: '⏳', processing: '⚙️', shipped: '🚚', delivered: '✅' };
+  const stepIcons   = { pending: '⏳', processing: '⚙️', shipped: '🚚', delivered: '✅' };
+  const stepLabels  = {
+    pending:    t('track.placed'),
+    processing: t('track.processing'),
+    shipped:    t('track.shipped'),
+    delivered:  t('track.delivered'),
+  };
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', padding: '3rem 0' }}>
       <div className="container" style={{ maxWidth: 680 }}>
 
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div style={{
             width: 80, height: 80, borderRadius: '50%', margin: '0 auto 1.25rem',
@@ -53,11 +59,10 @@ const TrackOrder = () => {
           }}>
             🔍
           </div>
-          <h1 style={{ color: '#F1F5F9', marginBottom: '0.5rem' }}>Track Your Order</h1>
-          <p style={{ color: '#475569' }}>Enter your order number to see real-time status</p>
+          <h1 style={{ color: '#F1F5F9', marginBottom: '0.5rem' }}>{t('track.title')}</h1>
+          <p style={{ color: '#475569' }}>{t('track.desc')}</p>
         </div>
 
-        {/* Search */}
         <div style={{
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -74,7 +79,7 @@ const TrackOrder = () => {
               </span>
               <input
                 type="text"
-                placeholder="e.g. ORD-1001"
+                placeholder={t('track.placeholder')}
                 value={orderNumber}
                 onChange={e => setOrderNumber(e.target.value.toUpperCase())}
                 className="form-input"
@@ -82,7 +87,7 @@ const TrackOrder = () => {
               />
             </div>
             <button type="submit" disabled={loading} className="btn btn-primary" style={{ minWidth: 120 }}>
-              {loading ? '⏳ Searching...' : '🔍 Track'}
+              {loading ? `⏳ ${t('track.tracking')}` : `🔍 ${t('track.button')}`}
             </button>
           </form>
         </div>
@@ -93,7 +98,6 @@ const TrackOrder = () => {
           </div>
         )}
 
-        {/* Result */}
         {order && (
           <div style={{
             background: 'rgba(255,255,255,0.03)',
@@ -102,14 +106,13 @@ const TrackOrder = () => {
             animation: 'fadeInUp 0.4s ease',
           }}>
 
-            {/* Order info */}
             <div style={{
               display: 'flex', justifyContent: 'space-between',
               marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem',
             }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: '#334155', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Order Number
+                  {t('track.status')}
                 </div>
                 <div style={{ fontWeight: 800, fontSize: '1.5rem', color: '#A5B4FC', fontFamily: 'monospace' }}>
                   {order.orderNumber}
@@ -128,12 +131,10 @@ const TrackOrder = () => {
             {/* Status timeline */}
             <div style={{ marginBottom: '2.5rem' }}>
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}>
-                {/* Background line */}
                 <div style={{
                   position: 'absolute', top: 20, left: '8%', right: '8%',
                   height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 2, zIndex: 0,
                 }} />
-                {/* Progress line */}
                 <div style={{
                   position: 'absolute', top: 20, left: '8%',
                   height: 3, borderRadius: 2, zIndex: 1,
@@ -162,23 +163,14 @@ const TrackOrder = () => {
                     <div style={{
                       fontSize: '0.72rem', fontWeight: i === currentStep ? 700 : 400,
                       color: i <= currentStep ? '#A5B4FC' : '#334155',
-                      textTransform: 'capitalize',
                     }}>
-                      {step}
+                      {stepLabels[step]}
                     </div>
-                    {i === currentStep && (
-                      <div style={{
-                        fontSize: '0.65rem', color: '#6C63FF', marginTop: '0.15rem', fontWeight: 600,
-                      }}>
-                        Current
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Tracking number */}
             {order.trackingNumber && (
               <div style={{
                 background: 'rgba(108,99,255,0.08)',
@@ -197,15 +189,9 @@ const TrackOrder = () => {
                     Carrier: {order.trackingCarrier}
                   </div>
                 )}
-                {order.shippedAt && (
-                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '0.2rem' }}>
-                    Shipped: {new Date(order.shippedAt).toLocaleDateString('de-DE')}
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Items */}
             <div>
               <h4 style={{ color: '#94A3B8', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Items in this order

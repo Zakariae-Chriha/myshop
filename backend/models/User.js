@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type:      String,
-      required:  [true, 'Password is required'],
+      required:  false,      // not required for OAuth users
       minlength: [6, 'Password must be at least 6 characters'],
       select:    false,
     },
@@ -42,6 +42,8 @@ const userSchema = new mongoose.Schema(
       country: { type: String, default: 'Germany' },
     },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    googleId: { type: String, default: '' },
+    avatar:   { type: String, default: '' },
     isActive:             { type: Boolean, default: true },
     resetPasswordToken:   { type: String },
     resetPasswordExpires: { type: Date },

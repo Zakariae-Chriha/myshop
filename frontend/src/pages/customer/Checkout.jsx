@@ -6,7 +6,9 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import BASE_URL from '../../api/config';
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLIC_KEY
+  ? loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
+  : null;
 
 const StripePaymentForm = ({ orderId, onSuccess, onError }) => {
   const stripe   = useStripe();

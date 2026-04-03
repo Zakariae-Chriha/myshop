@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ProductCard from '../../components/ProductCard';
 import BASE_URL from '../../api/config';
 import useSEO from '../../hooks/useSEO';
 
 const Shop = () => {
-  useSEO({ title: 'Shop', description: 'Browse all products — digital downloads and physical goods.' });
+  const { t } = useTranslation();
+  useSEO({ title: t('shop.title'), description: 'Browse all products — digital downloads and physical goods.' });
   const [searchParams] = useSearchParams();
 
   const [products,     setProducts]     = useState([]);
@@ -20,7 +22,6 @@ const Shop = () => {
   const [sort,        setSort]        = useState('newest');
   const [page,        setPage]        = useState(1);
 
-  // Debounce search input — wait 400ms after user stops typing
   const debounceRef = useRef(null);
   const handleSearchInput = (val) => {
     setSearchInput(val);
@@ -34,7 +35,8 @@ const Shop = () => {
   useEffect(() => {
     fetch(`${BASE_URL}/api/categories`)
       .then(r => r.json())
-      .then(d => setCategories(d.categories || []));
+      .then(d => setCategories(d.categories || []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -50,23 +52,22 @@ const Shop = () => {
     fetch(`${BASE_URL}/api/products?${params}`)
       .then(r => r.json())
       .then(d => { setProducts(d.products || []); setPagination(d.pagination || {}); })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [search, category, type, sort, page]);
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
 
-      {/* Page header */}
       <div style={{
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         padding: '3rem 0 2rem',
         background: 'rgba(255,255,255,0.02)',
       }}>
         <div className="container">
-          <h1 style={{ color: '#fff', marginBottom: '0.5rem' }}>All Products</h1>
+          <h1 style={{ color: '#fff', marginBottom: '0.5rem' }}>{t('shop.title')}</h1>
           <p style={{ color: '#475569' }}>
-            {pagination.total || 0} products available
+            {pagination.total || 0} {t('shop.available')}
           </p>
         </div>
       </div>
@@ -85,7 +86,7 @@ const Shop = () => {
             <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#475569' }}>🔍</span>
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('shop.search')}
               value={searchInput}
               onChange={e => handleSearchInput(e.target.value)}
               className="form-input"
@@ -95,7 +96,7 @@ const Shop = () => {
 
           <select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}
             className="form-select" style={{ width: 'auto', minWidth: 160 }}>
-            <option value="">All Categories</option>
+            <option value="">{t('shop.all_categories')}</option>
             {categories.map(c => (
               <option key={c._id} value={c._id}>{c.name?.en}</option>
             ))}
@@ -103,18 +104,18 @@ const Shop = () => {
 
           <select value={type} onChange={e => { setType(e.target.value); setPage(1); }}
             className="form-select" style={{ width: 'auto', minWidth: 140 }}>
-            <option value="">All Types</option>
-            <option value="digital">⚡ Digital</option>
-            <option value="physical">📦 Physical</option>
+            <option value="">{t('shop.all_types')}</option>
+            <option value="digital">{t('shop.digital')}</option>
+            <option value="physical">{t('shop.physical')}</option>
           </select>
 
           <select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }}
             className="form-select" style={{ width: 'auto', minWidth: 160 }}>
-            <option value="newest">Newest First</option>
-            <option value="bestseller">Best Sellers</option>
-            <option value="price">Price: Low to High</option>
-            <option value="-price">Price: High to Low</option>
-            <option value="rating">Top Rated</option>
+            <option value="newest">{t('shop.newest')}</option>
+            <option value="bestseller">{t('shop.bestseller')}</option>
+            <option value="price">{t('shop.price_asc')}</option>
+            <option value="-price">{t('shop.price_desc')}</option>
+            <option value="rating">{t('shop.top_rated')}</option>
           </select>
 
           {(searchInput || category || type || sort !== 'newest') && (
@@ -125,7 +126,7 @@ const Shop = () => {
                 border: '1px solid rgba(239,68,68,0.2)', fontSize: '0.875rem',
                 cursor: 'pointer',
               }}>
-              ✕ Clear
+              {t('shop.clear')}
             </button>
           )}
         </div>
@@ -139,7 +140,7 @@ const Shop = () => {
             color: !category ? '#fff' : '#94A3B8',
             border: !category ? 'none' : '1px solid rgba(255,255,255,0.1)',
           }}>
-            All
+            {t('shop.all')}
           </button>
           {categories.map(c => (
             <button key={c._id} onClick={() => setCategory(c._id)} style={{
@@ -176,8 +177,8 @@ const Shop = () => {
         ) : (
           <div className="empty-state">
             <div className="icon">🔍</div>
-            <h3>No products found</h3>
-            <p>Try adjusting your filters</p>
+            <h3>{t('shop.no_products')}</h3>
+            <p>{t('shop.adjust_filters')}</p>
           </div>
         )}
       </div>

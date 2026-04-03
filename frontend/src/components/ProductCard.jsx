@@ -1,10 +1,20 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import BASE_URL from '../api/config';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart }   = useCart();
+  const { user }        = useAuth();
+  const { t, i18n }     = useTranslation();
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wLoading,   setWLoading]   = useState(false);
 
-  const name      = product.name?.en || product.name || 'Product';
+  const lang      = i18n.language?.startsWith('ar') ? 'ar' : i18n.language?.startsWith('de') ? 'de' : 'en';
+  const name      = product.name?.[lang] || product.name?.en || product.name || 'Product';
   const image     = product.images?.[0];
   const isDigital = product.productType === 'digital';
 
@@ -16,13 +26,35 @@ const ProductCard = ({ product }) => {
     'linear-gradient(135deg, #3d1515, #7f1d1d)',
     'linear-gradient(135deg, #1a2e1a, #14532d)',
   ];
-
   const gradientIndex = name.length % gradients.length;
+
+  // Wishlist state is local — toggled by the heart button only
 
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product, 1);
+    toast.success(`${name} ${t('product.add_to_cart') || 'added to cart'}!`);
+  };
+
+  const handleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.error('Please login to save items'); return; }
+    setWLoading(true);
+    try {
+      const res  = await fetch(`${BASE_URL}/api/auth/wishlist/${product._id}`, {
+        method:  'PUT',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const data = await res.json();
+      setWishlisted(data.added);
+      toast.success(data.added ? '❤️ Saved to wishlist' : '💔 Removed from wishlist');
+    } catch {
+      toast.error('Failed to update wishlist');
+    } finally {
+      setWLoading(false);
+    }
   };
 
   const renderStars = (rating = 0) => {
@@ -42,16 +74,16 @@ const ProductCard = ({ product }) => {
         cursor: 'pointer',
       }}
         onMouseEnter={e => {
-          e.currentTarget.style.transform     = 'translateY(-4px)';
-          e.currentTarget.style.borderColor   = 'rgba(108,99,255,0.4)';
-          e.currentTarget.style.boxShadow     = '0 16px 48px rgba(108,99,255,0.15)';
-          e.currentTarget.style.background    = 'rgba(255,255,255,0.05)';
+          e.currentTarget.style.transform  = 'translateY(-4px)';
+          e.currentTarget.style.borderColor = 'rgba(108,99,255,0.4)';
+          e.currentTarget.style.boxShadow  = '0 16px 48px rgba(108,99,255,0.15)';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.transform     = 'translateY(0)';
-          e.currentTarget.style.borderColor   = 'rgba(255,255,255,0.08)';
-          e.currentTarget.style.boxShadow     = 'none';
-          e.currentTarget.style.background    = 'rgba(255,255,255,0.03)';
+          e.currentTarget.style.transform  = 'translateY(0)';
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+          e.currentTarget.style.boxShadow  = 'none';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
         }}
       >
         {/* Image */}
@@ -81,8 +113,26 @@ const ProductCard = ({ product }) => {
           {/* Badge */}
           <span className={`badge ${isDigital ? 'badge-digital' : 'badge-physical'}`}
             style={{ position: 'absolute', top: 12, left: 12 }}>
-            {isDigital ? '⚡ Digital' : '📦 Physical'}
+            {isDigital ? `⚡ ${t('shop.digital')}` : `📦 ${t('shop.physical')}`}
           </span>
+
+          {/* Wishlist heart */}
+          <button
+            onClick={handleWishlist}
+            disabled={wLoading}
+            style={{
+              position: 'absolute', top: 10, right: 10,
+              width: 32, height: 32, borderRadius: '50%',
+              background: wishlisted ? 'rgba(239,68,68,0.85)' : 'rgba(0,0,0,0.5)',
+              border: wishlisted ? '1.5px solid rgba(239,68,68,0.6)' : '1.5px solid rgba(255,255,255,0.15)',
+              color: wishlisted ? '#fff' : '#94A3B8',
+              fontSize: '15px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s', backdropFilter: 'blur(4px)',
+            }}
+          >
+            {wishlisted ? '❤' : '♡'}
+          </button>
         </div>
 
         {/* Body */}
@@ -131,7 +181,7 @@ const ProductCard = ({ product }) => {
             <button onClick={handleAdd}
               className="btn btn-primary btn-sm"
               style={{ flexShrink: 0 }}>
-              + Cart
+              {t('product.add_to_cart') || '+ Cart'}
             </button>
           </div>
         </div>

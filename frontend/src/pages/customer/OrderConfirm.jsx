@@ -1,4 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
+import { generateInvoice } from '../../utils/generateInvoice';
 
 const OrderConfirm = () => {
   const location = useLocation();
@@ -102,6 +103,25 @@ const OrderConfirm = () => {
             Continue Shopping
           </Link>
         </div>
+
+        {order && (
+          <button
+            onClick={() => generateInvoice(order)}
+            style={{
+              marginTop: '1rem', width: '100%',
+              padding: '0.75rem', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(16,185,129,0.08)', color: '#10B981',
+              border: '1px solid rgba(16,185,129,0.25)',
+              fontWeight: 600, fontSize: '0.875rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.15)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,185,129,0.08)'}
+          >
+            📄 Download Invoice (PDF)
+          </button>
+        )}
       </div>
     </div>
   );

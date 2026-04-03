@@ -69,6 +69,20 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ─── GET /api/products/admin/low-stock ───────────────────────────────────────
+router.get('/admin/low-stock', protect, isAdmin, async (req, res) => {
+  try {
+    const products = await Product.find({
+      productType: 'physical',
+      isActive: true,
+      $expr: { $lte: ['$stock', '$lowStockThreshold'] },
+    }).select('name stock lowStockThreshold images').sort({ stock: 1 }).limit(20);
+    res.json({ products });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── POST /api/products (admin) ──────────────────────────────────────────────
 router.post('/', protect, isAdmin, async (req, res) => {
   try {

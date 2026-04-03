@@ -7,9 +7,23 @@ const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
 const { triggerPasswordReset } = require('../utils/n8nWebhook');
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const generateAccessToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+const generateRefreshToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh', { expiresIn: '30d' });
+
+const setRefreshCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge:   30 * 24 * 60 * 60 * 1000, // 30 days
+  });
 };
+
+// Keep backward-compat alias used by older code paths
+const generateToken = generateAccessToken;
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
@@ -20,9 +34,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
     const user = await User.create({ name, email, password, language });
+    setRefreshCookie(res, generateRefreshToken(user._id));
     res.status(201).json({
       message: 'Account created successfully',
-      token:   generateToken(user._id),
+      token:   generateAccessToken(user._id),
       user:    user.toPublicProfile(),
     });
   } catch (error) {
@@ -45,14 +60,35 @@ router.post('/login', async (req, res) => {
     if (!user.isActive) {
       return res.status(403).json({ message: 'Account has been deactivated' });
     }
+    setRefreshCookie(res, generateRefreshToken(user._id));
     res.json({
       message: 'Login successful',
-      token:   generateToken(user._id),
+      token:   generateAccessToken(user._id),
       user:    user.toPublicProfile(),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+// POST /api/auth/refresh — exchange refresh cookie for new access token
+router.post('/refresh', (req, res) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) return res.status(401).json({ message: 'No refresh token' });
+  try {
+    const secret  = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh';
+    const decoded = jwt.verify(token, secret);
+    const newAccess = generateAccessToken(decoded.id);
+    res.json({ token: newAccess });
+  } catch {
+    res.status(401).json({ message: 'Refresh token invalid or expired' });
+  }
+});
+
+// POST /api/auth/logout — clear refresh cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'lax' });
+  res.json({ message: 'Logged out' });
 });
 
 // GET /api/auth/me

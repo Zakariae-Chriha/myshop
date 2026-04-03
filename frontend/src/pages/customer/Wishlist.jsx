@@ -24,7 +24,7 @@ const Wishlist = () => {
     fetch(`${BASE_URL}/api/auth/wishlist`, { headers })
       .then(r => r.json())
       .then(d => setWishlist(d.wishlist || []))
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [user]);
 

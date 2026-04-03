@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import BASE_URL from '../../api/config';
 
 const MyAccount = () => {
   const { user, logout } = useAuth();
   const navigate         = useNavigate();
+  const { t }            = useTranslation();
 
   const [orders,  setOrders]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,25 +128,25 @@ const MyAccount = () => {
             padding: '0.5rem 1.25rem', borderRadius: 8,
             cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500,
           }}>
-            🚪 Logout
+            🚪 {t('account.logout')}
           </button>
         </div>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {[
-            { key: 'orders',  label: '📦 My Orders' },
-            { key: 'profile', label: '✏️ Edit Profile' },
-          ].map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
+            { key: 'orders',  label: `📦 ${t('account.orders')}` },
+            { key: 'profile', label: `✏️ ${t('account.settings')}` },
+          ].map(tab_ => (
+            <button key={tab_.key} onClick={() => setTab(tab_.key)} style={{
               padding: '0.6rem 1.5rem', borderRadius: 10, cursor: 'pointer',
               fontWeight: 600, fontSize: '0.875rem',
-              background: tab === t.key ? 'linear-gradient(135deg, #6C63FF, #8B5CF6)' : 'rgba(255,255,255,0.03)',
-              color:      tab === t.key ? '#fff' : '#475569',
-              border:     tab === t.key ? 'none' : '1px solid rgba(255,255,255,0.08)',
-              boxShadow:  tab === t.key ? '0 4px 16px rgba(108,99,255,0.3)' : 'none',
+              background: tab === tab_.key ? 'linear-gradient(135deg, #6C63FF, #8B5CF6)' : 'rgba(255,255,255,0.03)',
+              color:      tab === tab_.key ? '#fff' : '#475569',
+              border:     tab === tab_.key ? 'none' : '1px solid rgba(255,255,255,0.08)',
+              boxShadow:  tab === tab_.key ? '0 4px 16px rgba(108,99,255,0.3)' : 'none',
             }}>
-              {t.label}
+              {tab_.label}
             </button>
           ))}
         </div>
@@ -157,9 +159,9 @@ const MyAccount = () => {
             ) : orders.length === 0 ? (
               <div className="empty-state">
                 <div className="icon">📦</div>
-                <h3 style={{ color: '#F1F5F9' }}>No orders yet</h3>
-                <p style={{ marginBottom: '1.5rem' }}>Start shopping to see your orders here</p>
-                <Link to="/shop" className="btn btn-primary">Browse Products</Link>
+                <h3 style={{ color: '#F1F5F9' }}>{t('account.no_orders')}</h3>
+                <p style={{ marginBottom: '1.5rem' }}>{t('account.no_orders_desc')}</p>
+                <Link to="/shop" className="btn btn-primary">{t('common.browse')}</Link>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -302,7 +304,7 @@ const MyAccount = () => {
               </div>
 
               <button type="submit" disabled={saving} className="btn btn-primary btn-lg">
-                {saving ? 'Saving...' : '💾 Save Changes'}
+                {saving ? t('account.saving') : `💾 ${t('account.save_profile')}`}
               </button>
             </form>
           </div>

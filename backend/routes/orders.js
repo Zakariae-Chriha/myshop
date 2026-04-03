@@ -135,32 +135,104 @@ router.get('/track/:orderNumber', async (req, res) => {
   }
 });
 
-// GET /api/orders/admin/analytics
+// GET /api/orders/admin/analytics?period=day|month|year
 router.get('/admin/analytics', protect, isAdmin, async (req, res) => {
   try {
-    const days      = 7;
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days + 1);
-    startDate.setHours(0, 0, 0, 0);
+    const period = req.query.period || 'week'; // day, week, month, year
 
-    // Revenue + order count per day (last 7 days)
+    let startDate = new Date();
+    let groupFormat, days, labelFormat;
+
+    if (period === 'day') {
+      // Today hourly — last 24h
+      startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      groupFormat  = '%Y-%m-%dT%H';
+      days         = 24;
+      labelFormat  = 'hour';
+    } else if (period === 'month') {
+      // Last 30 days
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+      groupFormat  = '%Y-%m-%d';
+      days         = 30;
+      labelFormat  = 'day';
+    } else if (period === 'year') {
+      // Last 12 months
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 11);
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+      groupFormat  = '%Y-%m';
+      days         = 12;
+      labelFormat  = 'month';
+    } else {
+      // Default: last 7 days
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+      groupFormat  = '%Y-%m-%d';
+      days         = 7;
+      labelFormat  = 'day';
+    }
+
     const daily = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate } } },
       { $group: {
-        _id:      { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        revenue:  { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0] } },
-        orders:   { $sum: 1 },
+        _id:     { $dateToString: { format: groupFormat, date: '$createdAt' } },
+        revenue: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0] } },
+        orders:  { $sum: 1 },
       }},
       { $sort: { _id: 1 } },
     ]);
 
-    // Status breakdown
+    // Fill missing slots with zeros
+    const filledDaily = [];
+    if (labelFormat === 'month') {
+      for (let i = 0; i < days; i++) {
+        const d = new Date(startDate);
+        d.setMonth(d.getMonth() + i);
+        const key   = d.toISOString().slice(0, 7);
+        const found = daily.find(x => x._id === key);
+        filledDaily.push({ date: key, revenue: found?.revenue || 0, orders: found?.orders || 0 });
+      }
+    } else if (labelFormat === 'hour') {
+      for (let i = 0; i < days; i++) {
+        const d = new Date(startDate.getTime() + i * 60 * 60 * 1000);
+        const key = d.toISOString().slice(0, 13);
+        const found = daily.find(x => x._id === key);
+        filledDaily.push({ date: key.slice(11) + 'h', revenue: found?.revenue || 0, orders: found?.orders || 0 });
+      }
+    } else {
+      for (let i = 0; i < days; i++) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        const key   = d.toISOString().slice(0, 10);
+        const found = daily.find(x => x._id === key);
+        filledDaily.push({ date: key, revenue: found?.revenue || 0, orders: found?.orders || 0 });
+      }
+    }
+
+    // Summary totals for the period
+    const summary = await Order.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
+      { $group: {
+        _id:          null,
+        totalRevenue: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0] } },
+        totalOrders:  { $sum: 1 },
+        totalItems:   { $sum: { $size: '$items' } },
+      }},
+    ]);
+
+    // Status breakdown for the period
     const statusBreakdown = await Order.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
       { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
     ]);
 
-    // Top 5 products by revenue
+    // Top 5 products by revenue for the period
     const topProducts = await Order.aggregate([
+      { $match: { createdAt: { $gte: startDate } } },
       { $unwind: '$items' },
       { $group: {
         _id:       '$items.name',
@@ -171,17 +243,15 @@ router.get('/admin/analytics', protect, isAdmin, async (req, res) => {
       { $limit: 5 },
     ]);
 
-    // Fill missing days with zeros
-    const filledDaily = [];
-    for (let i = 0; i < days; i++) {
-      const d = new Date(startDate);
-      d.setDate(d.getDate() + i);
-      const key   = d.toISOString().slice(0, 10);
-      const found = daily.find(x => x._id === key);
-      filledDaily.push({ date: key, revenue: found?.revenue || 0, orders: found?.orders || 0 });
-    }
-
-    res.json({ daily: filledDaily, statusBreakdown, topProducts });
+    res.json({
+      daily: filledDaily,
+      statusBreakdown,
+      topProducts,
+      summary: summary[0] || { totalRevenue: 0, totalOrders: 0, totalItems: 0 },
+      period,
+      from: startDate.toISOString().slice(0, 10),
+      to:   new Date().toISOString().slice(0, 10),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

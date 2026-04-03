@@ -9,6 +9,7 @@ import Wishlist          from './pages/customer/Wishlist';
 import Navbar      from './components/Navbar';
 import Footer      from './components/Footer';
 import CookieBanner from './components/CookieBanner';
+import ChatWidget   from './components/ChatWidget';
 import AdminsManager from './pages/admin/AdminsManager';
 import Home          from './pages/customer/Home';
 import Shop          from './pages/customer/Shop';
@@ -25,6 +26,8 @@ import Datenschutz   from './pages/Datenschutz';
 import AGB           from './pages/AGB';
 
 import AdminLogin        from './pages/admin/AdminLogin';
+import ReviewsManager    from './pages/admin/ReviewsManager';
+import OAuthCallback     from './pages/customer/OAuthCallback';
 import Dashboard         from './pages/admin/Dashboard';
 import ProductsManager   from './pages/admin/ProductsManager';
 import OrdersManager     from './pages/admin/OrdersManager';
@@ -73,10 +76,12 @@ const AppContent = () => {
           <Route path="/admin/customers"  element={<AdminRoute><CustomersManager /></AdminRoute>} />
           <Route path="/admin/coupons"    element={<AdminRoute><CouponsManager /></AdminRoute>} />
           <Route path="/admin/categories" element={<AdminRoute><CategoriesManager /></AdminRoute>} />
+          <Route path="/oauth-callback"             element={<OAuthCallback />} />
           <Route path="/forgot-password"           element={<ForgotPassword />} />
           <Route path="/reset-password/:token"     element={<ResetPassword />} />
           <Route path="/confirm-delivery/:token"   element={<ConfirmDelivery />} />
-<Route path="/admin/admins" element={<AdminRoute><AdminsManager /></AdminRoute>} />
+<Route path="/admin/admins"   element={<AdminRoute><AdminsManager /></AdminRoute>} />
+          <Route path="/admin/reviews" element={<AdminRoute><ReviewsManager /></AdminRoute>} />
         </Routes>
       </main>
       <Footer />
@@ -89,6 +94,7 @@ const App = () => (
   <AuthProvider>
     <CartProvider>
       <AppContent />
+      <ChatWidget />
       <Toaster
         position="top-right"
         toastOptions={{

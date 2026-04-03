@@ -16,6 +16,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/coupons',    icon: '🎟️', label: 'Coupons' },
     { path: '/admin/categories', icon: '🗂️', label: 'Categories' },
     { path: '/admin/admins',     icon: '👑', label: 'Admins' },
+    { path: '/admin/reviews',    icon: '⭐', label: 'Reviews' },
   ];
 
   const isActive = (path) => {
@@ -45,7 +46,7 @@ const AdminLayout = ({ children }) => {
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             marginBottom: '0.25rem',
           }}>
-            DigitalShop
+            ZC Brands
           </div>
           <div style={{
             fontSize: '0.72rem', color: '#334155',

@@ -9,13 +9,17 @@ const Navbar = () => {
   const { totalItems } = useCart();
   const location = useLocation();
   const navigate  = useNavigate();
-  const { i18n }  = useTranslation();
+  const { i18n, t }  = useTranslation();
 
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
   const [search,     setSearch]     = useState('');
 
-  const switchLang = (lang) => i18n.changeLanguage(lang);
+  const switchLang = (lang) => {
+    i18n.changeLanguage(lang);
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -54,23 +58,22 @@ const Navbar = () => {
         }}>
 
           {/* Logo */}
-          <Link to="/" style={{
-            fontSize: '1.35rem', fontWeight: 900,
-            background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            letterSpacing: '-0.5px', flexShrink: 0,
-          }}>
-            DigitalShop
+          <Link to="/" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            <img
+              src="/logo.png"
+              alt="ZC Brands"
+              style={{ height: 44, width: 'auto', objectFit: 'contain', mixBlendMode: 'screen' }}
+            />
           </Link>
 
           {/* Desktop nav links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
             className="desktop-nav">
             {[
-              { path: '/',        label: 'Home' },
-              { path: '/shop',    label: 'Shop' },
-              { path: '/track',   label: 'Track Order' },
-              { path: '/wishlist', label: '♡ Wishlist' },
+              { path: '/',         label: t('nav.home') },
+              { path: '/shop',     label: t('nav.shop') },
+              { path: '/track',    label: t('nav.track') },
+              { path: '/wishlist', label: `♡ ${t('nav.wishlist')}` },
             ].map(({ path, label }) => (
               <Link key={path} to={path} style={{
                 padding: '0.5rem 0.875rem',
@@ -123,7 +126,7 @@ const Navbar = () => {
 
             {/* Language switcher */}
             <div style={{ display: 'flex', gap: '2px' }}>
-              {['en', 'de'].map(lang => (
+              {['en', 'de', 'ar'].map(lang => (
                 <button key={lang} onClick={() => switchLang(lang)} style={{
                   padding: '0.3rem 0.55rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700,
                   cursor: 'pointer', border: 'none',
@@ -186,7 +189,7 @@ const Navbar = () => {
                   padding: '0.5rem 0.875rem', borderRadius: 8,
                   fontSize: '0.8rem', cursor: 'pointer',
                 }}>
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             ) : (
@@ -196,10 +199,10 @@ const Navbar = () => {
                   color: '#94A3B8', fontSize: '0.875rem',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}>
-                  Login
+                  {t('nav.login')}
                 </Link>
                 <Link to="/register" className="btn btn-primary btn-sm">
-                  Register
+                  {t('nav.register')}
                 </Link>
               </div>
             )}
@@ -239,10 +242,10 @@ const Navbar = () => {
               />
             </form>
             {[
-              { path: '/',      label: 'Home' },
-              { path: '/shop',  label: 'Shop' },
-              { path: '/track', label: 'Track Order' },
-              ...(user ? [{ path: '/account', label: 'My Account' }] : []),
+              { path: '/',        label: t('nav.home') },
+              { path: '/shop',    label: t('nav.shop') },
+              { path: '/track',   label: t('nav.track') },
+              ...(user ? [{ path: '/account', label: t('nav.account') }] : []),
             ].map(({ path, label }) => (
               <Link key={path} to={path} style={{
                 display: 'block', padding: '0.75rem 0',
