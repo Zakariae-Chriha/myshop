@@ -1,7 +1,7 @@
 const express     = require('express');
 const router      = express.Router();
 const Order       = require('../models/Order');
-const stripe      = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe      = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 const { protect } = require('../middleware/auth');
 
 router.post('/create-intent', async (req, res) => {
