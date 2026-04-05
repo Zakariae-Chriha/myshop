@@ -6,7 +6,7 @@ const Product = require('../models/Product');
 const Coupon  = require('../models/Coupon');
 const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
-const { triggerN8n } = require('../utils/n8nWebhook');
+const { sendOrderConfirmed, sendOrderShipped, sendOrderDelivered, sendLowStockAlert } = require('../utils/emailService');
 
 // POST /api/orders
 router.post('/', protect, async (req, res) => {
@@ -78,7 +78,7 @@ router.post('/', protect, async (req, res) => {
         );
         // Fire low-stock alert if stock fell at or below threshold
         if (updated && updated.stock <= updated.lowStockThreshold) {
-          triggerN8n('low_stock', {
+          sendLowStockAlert({
             productName:   updated.name.en,
             currentStock:  updated.stock,
             threshold:     updated.lowStockThreshold,
@@ -92,11 +92,12 @@ router.post('/', protect, async (req, res) => {
       .populate('customer', 'name email');
 
     // Trigger n8n automation
-    triggerN8n('order_created', {
+    sendOrderConfirmed({
       orderNumber:   order.orderNumber,
       customerName:  populatedOrder.customer.name,
       customerEmail: populatedOrder.customer.email,
       total:         order.total,
+      subtotal:      order.subtotal,
       vatAmount:     order.vatAmount,
       paymentMethod: order.paymentMethod,
       items:         order.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.priceWithVAT })),
@@ -311,7 +312,7 @@ router.put('/admin/:id/status', protect, isAdmin, async (req, res) => {
 
     // Trigger delivery confirmation email if delivered
     if (orderStatus === 'delivered') {
-      triggerN8n('order_delivered', {
+      sendOrderDelivered({
         orderNumber:   order.orderNumber,
         customerName:  order.customer.name,
         customerEmail: order.customer.email,
@@ -341,7 +342,7 @@ router.put('/admin/:id/tracking', protect, isAdmin, async (req, res) => {
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
     const confirmLink = `${process.env.FRONTEND_URL}/confirm-delivery/${deliveryToken}`;
-    triggerN8n('order_shipped', {
+    sendOrderShipped({
       orderNumber:   order.orderNumber,
       customerName:  order.customer.name,
       customerEmail: order.customer.email,

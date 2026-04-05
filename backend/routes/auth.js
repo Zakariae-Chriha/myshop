@@ -5,7 +5,7 @@ const crypto   = require('crypto');
 const User     = require('../models/User');
 const { protect } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/isAdmin');
-const { triggerPasswordReset } = require('../utils/n8nWebhook');
+const { sendPasswordReset } = require('../utils/emailService');
 
 const generateAccessToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' });
@@ -129,7 +129,7 @@ router.post('/forgot-password', async (req, res) => {
       resetPasswordToken:   resetToken,
       resetPasswordExpires: resetExpires,
     });
-    triggerPasswordReset({
+    sendPasswordReset({
       customerName:  user.name,
       customerEmail: user.email,
       resetLink:     `${process.env.FRONTEND_URL || 'http://localhost:3005'}/reset-password/${resetToken}`,
