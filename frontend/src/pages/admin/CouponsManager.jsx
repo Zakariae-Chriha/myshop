@@ -26,7 +26,7 @@ const CouponsManager = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchCoupons(); }, []);
+  useEffect(() => { fetchCoupons(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e) => {
     e.preventDefault();

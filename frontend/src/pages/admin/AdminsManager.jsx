@@ -21,7 +21,7 @@ const AdminsManager = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchAdmins(); }, []);
+  useEffect(() => { fetchAdmins(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreate = async (e) => {
     e.preventDefault();

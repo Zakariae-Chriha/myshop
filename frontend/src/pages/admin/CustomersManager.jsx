@@ -16,7 +16,7 @@ const CustomersManager = () => {
       .then(d => setCustomers(d.customers || []))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = customers.filter(c =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
