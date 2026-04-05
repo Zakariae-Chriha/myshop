@@ -58,7 +58,7 @@ const ProductsManager = () => {
         setMsg('Image uploaded!');
         setTimeout(() => setMsg(''), 2000);
       } else {
-        setMsg('Upload failed: ' + data.message);
+        setMsg('Upload failed: ' + (data.message || JSON.stringify(data) || res.status));
       }
     } catch (err) {
       setMsg('Upload error: ' + err.message);
