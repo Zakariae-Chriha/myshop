@@ -10,6 +10,7 @@ cloudinary.config({
   api_key:     process.env.CLOUDINARY_API_KEY,
   api_secret:  process.env.CLOUDINARY_API_SECRET,
 });
+console.log('[Cloudinary] cloud_name:', process.env.CLOUDINARY_CLOUD_NAME || 'MISSING');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -34,8 +35,9 @@ router.post('/image', protect, isAdmin, upload.single('image'), async (req, res)
       url:     result.secure_url,
     });
   } catch (error) {
-    console.log('Cloudinary error:', error.message);
-    res.status(500).json({ message: error.message });
+    console.log('Cloudinary error:', JSON.stringify(error));
+    const msg = error.message || error?.error?.message || 'Cloudinary upload failed';
+    res.status(500).json({ message: msg });
   }
 });
 
