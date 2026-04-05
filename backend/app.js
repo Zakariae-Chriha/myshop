@@ -38,6 +38,7 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowed = [
       process.env.FRONTEND_URL || 'http://localhost:3000',
+      'https://myshop-pi-dun.vercel.app',
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3005',
