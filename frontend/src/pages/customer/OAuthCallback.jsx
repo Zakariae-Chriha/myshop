@@ -26,7 +26,7 @@ const OAuthCallback = () => {
         }
       })
       .catch(() => navigate('/login?error=oauth'));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{

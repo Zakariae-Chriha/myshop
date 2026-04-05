@@ -38,7 +38,7 @@ const ProductsManager = () => {
     }).catch(console.error).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];

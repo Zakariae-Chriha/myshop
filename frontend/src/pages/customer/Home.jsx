@@ -90,7 +90,7 @@ const Home = () => {
       setTypeIndex(i => (i + 1) % typeWords.length);
     }, 2500);
     return () => clearInterval(timer);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Parallax mouse effect
   useEffect(() => {

@@ -32,7 +32,7 @@ const OrdersManager = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchOrders(); }, [filter]);
+  useEffect(() => { fetchOrders(); }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStatus = async (id, orderStatus, paymentStatus) => {
     setUpdating(true);

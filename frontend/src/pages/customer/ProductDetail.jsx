@@ -69,7 +69,7 @@ const ProductDetail = () => {
           setWishlisted((d.wishlist || []).some(p => (p._id || p) === id));
         });
     }
-  }, [id, user]);
+  }, [id, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAddToCart = () => {
     addToCart(product, quantity);

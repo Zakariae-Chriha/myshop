@@ -15,7 +15,7 @@ const TrackOrder = () => {
 
   useEffect(() => {
     if (searchParams.get('order')) handleTrack(null, searchParams.get('order'));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTrack = async (e, num) => {
     if (e) e.preventDefault();

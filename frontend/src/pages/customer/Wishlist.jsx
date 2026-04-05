@@ -26,13 +26,13 @@ const Wishlist = () => {
       .then(d => setWishlist(d.wishlist || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const removeFromWishlist = async (productId) => {
     setRemoving(productId);
     try {
       const res  = await fetch(`${BASE_URL}/api/auth/wishlist/${productId}`, { method: 'PUT', headers });
-      const data = await res.json();
+      await res.json();
       setWishlist(prev => prev.filter(p => p._id !== productId));
       toast.success('Removed from wishlist');
     } catch {

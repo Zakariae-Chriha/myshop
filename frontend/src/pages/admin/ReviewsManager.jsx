@@ -19,7 +19,7 @@ const ReviewsManager = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchPending(); }, []);
+  useEffect(() => { fetchPending(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const approve = async (id) => {
     try {

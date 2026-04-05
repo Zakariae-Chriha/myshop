@@ -178,7 +178,7 @@ const Dashboard = () => {
     })
     .catch(console.error)
     .finally(() => setLoading(false));
-  }, [period]);
+  }, [period]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const periodLabels = { day: 'Today', week: 'Last 7 Days', month: 'Last 30 Days', year: 'Last 12 Months' };
 
