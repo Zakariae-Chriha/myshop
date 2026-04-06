@@ -281,7 +281,7 @@ const MyAccount = () => {
                   className="form-input" placeholder="Street and number" />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">City</label>
                   <input type="text" value={profile.address.city}

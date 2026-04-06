@@ -79,7 +79,7 @@ const Cart = () => {
           <p style={{ color: '#475569' }}>{cartItems.length} {t('cart.items')} {t('cart.in_cart')}</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
+        <div className="cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
 
           {/* Cart items */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

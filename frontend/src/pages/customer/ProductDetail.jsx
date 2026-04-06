@@ -166,7 +166,7 @@ const ProductDetail = () => {
           <span style={{ color: '#A5B4FC' }}>{name}</span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
+        <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
 
           {/* Left — Image */}
           <div>

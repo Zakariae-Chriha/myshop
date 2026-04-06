@@ -54,7 +54,7 @@ const ChatWidget = () => {
     <>
       {/* Chat window */}
       {open && (
-        <div style={{
+        <div className="chat-window" style={{
           position: 'fixed', bottom: 90, right: 24, zIndex: 9999,
           width: 340, height: 480,
           background: 'rgba(10,10,20,0.97)',

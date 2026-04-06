@@ -179,7 +179,7 @@ const Checkout = () => {
           <p style={{ color: '#475569' }}>Complete your order securely</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
+        <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
 
           <div>
             {error && <div className="alert alert-error">{error}</div>}
@@ -191,7 +191,7 @@ const Checkout = () => {
                   <h3 style={{ color: '#F1F5F9', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     📦 Shipping Address
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                       <label className="form-label">Full Name</label>
                       <input name="fullName" value={address.fullName} onChange={handleAddress}
