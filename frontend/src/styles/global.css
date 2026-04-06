@@ -281,3 +281,39 @@ h4 { font-size: 1rem; font-weight: 600; }
   .form-row-3 { grid-template-columns: 1fr !important; }
   .form-row-4 { grid-template-columns: 1fr 1fr !important; }
 }
+
+/* ── Hero section mobile ──────────────────────────────── */
+@media (max-width: 768px) {
+  /* Stack hero to single column */
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+    text-align: center;
+  }
+  /* Hide the right-side animated visual on mobile */
+  .hero-visual { display: none !important; }
+  /* Center CTA buttons */
+  .hero-grid > div:first-child > div[style*="flex"] {
+    justify-content: center;
+  }
+}
+
+/* ── Navbar mobile: hide desktop-only items ───────────── */
+@media (max-width: 768px) {
+  .nav-lang    { display: none !important; }
+  .nav-auth    { display: none !important; }
+  .nav-cart    { display: flex !important; }
+}
+
+/* ── Prevent horizontal overflow globally ─────────────── */
+html, body { overflow-x: hidden; max-width: 100vw; }
+
+/* ── Mobile ticker fix ────────────────────────────────── */
+@media (max-width: 768px) {
+  .ticker-wrap { font-size: 0.78rem !important; }
+}
+
+/* ── Stats grid mobile ────────────────────────────────── */
+@media (max-width: 640px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}

@@ -125,7 +125,7 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
 
             {/* Language switcher */}
-            <div style={{ display: 'flex', gap: '2px' }}>
+            <div className="nav-lang" style={{ display: 'flex', gap: '2px' }}>
               {['en', 'de', 'ar'].map(lang => (
                 <button key={lang} onClick={() => switchLang(lang)} style={{
                   padding: '0.3rem 0.55rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700,
@@ -164,7 +164,7 @@ const Navbar = () => {
 
             {/* Auth */}
             {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="nav-auth" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 {isAdmin && (
                   <Link to="/admin" style={{
                     padding: '0.5rem 0.875rem', borderRadius: 8,
@@ -193,7 +193,7 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="nav-auth" style={{ display: 'flex', gap: '0.5rem' }}>
                 <Link to="/login" style={{
                   padding: '0.5rem 1rem', borderRadius: 8,
                   color: '#94A3B8', fontSize: '0.875rem',
@@ -242,9 +242,10 @@ const Navbar = () => {
               />
             </form>
             {[
-              { path: '/',        label: t('nav.home') },
-              { path: '/shop',    label: t('nav.shop') },
-              { path: '/track',   label: t('nav.track') },
+              { path: '/',         label: t('nav.home') },
+              { path: '/shop',     label: t('nav.shop') },
+              { path: '/track',    label: t('nav.track') },
+              { path: '/wishlist', label: `♡ ${t('nav.wishlist')}` },
               ...(user ? [{ path: '/account', label: t('nav.account') }] : []),
             ].map(({ path, label }) => (
               <Link key={path} to={path} style={{
@@ -256,6 +257,46 @@ const Navbar = () => {
                 {label}
               </Link>
             ))}
+
+            {/* Mobile lang switcher */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              {['en', 'de', 'ar'].map(lang => (
+                <button key={lang} onClick={() => switchLang(lang)} style={{
+                  padding: '0.4rem 0.75rem', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700,
+                  cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)',
+                  background: i18n.language === lang ? 'rgba(108,99,255,0.25)' : 'transparent',
+                  color: i18n.language === lang ? '#A5B4FC' : '#475569',
+                }}>
+                  {lang.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile auth */}
+            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
+              {user ? (
+                <button onClick={logout} style={{
+                  flex: 1, padding: '0.75rem', borderRadius: 8, fontSize: '0.9rem',
+                  background: 'rgba(239,68,68,0.1)', color: '#FCA5A5',
+                  border: '1px solid rgba(239,68,68,0.2)', cursor: 'pointer',
+                }}>
+                  {t('nav.logout')}
+                </button>
+              ) : (
+                <>
+                  <Link to="/login" style={{
+                    flex: 1, padding: '0.75rem', borderRadius: 8, fontSize: '0.9rem',
+                    background: 'rgba(255,255,255,0.05)', color: '#94A3B8',
+                    border: '1px solid rgba(255,255,255,0.1)', textAlign: 'center',
+                  }}>{t('nav.login')}</Link>
+                  <Link to="/register" style={{
+                    flex: 1, padding: '0.75rem', borderRadius: 8, fontSize: '0.9rem',
+                    background: 'linear-gradient(135deg, #6C63FF, #8B5CF6)', color: '#fff',
+                    fontWeight: 700, textAlign: 'center',
+                  }}>{t('nav.register')}</Link>
+                </>
+              )}
+            </div>
           </div>
         )}
       </nav>
