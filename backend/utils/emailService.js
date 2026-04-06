@@ -1,22 +1,30 @@
-const { Resend } = require('resend');
+const axios = require('axios');
 const tmpl = require('./emailTemplates');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'chrihazakaria@gmail.com';
+const FROM_EMAIL  = process.env.FROM_EMAIL  || 'onboarding@resend.dev';
 
 const send = async ({ to, subject, html }) => {
-  if (!process.env.RESEND_API_KEY) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
     console.log('[Email] RESEND_API_KEY not set — skipping:', subject);
     return;
   }
   try {
-    const { data, error } = await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
-    if (error) console.error('[Email] Resend error:', error);
-    else console.log('[Email] Sent:', subject, '→', to);
+    await axios.post('https://api.resend.com/emails', {
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('[Email] Sent:', subject, '→', to);
   } catch (err) {
-    console.error('[Email] Failed:', err.message);
+    console.error('[Email] Failed:', err.response?.data || err.message);
   }
 };
 
