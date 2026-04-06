@@ -38,11 +38,20 @@ import CategoriesManager from './pages/admin/CategoriesManager';
 // ─── Mobile Bottom Navigation ─────────────────────────────────────────────────
 const BottomNav = () => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { totalItems } = useCart();
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-  const items = [
+  // Hide on admin pages
+  if (location.pathname.startsWith('/admin')) return null;
+
+  const items = isAdmin ? [
+    { path: '/',               icon: '🏠', label: 'Home' },
+    { path: '/admin',          icon: '⚙️', label: 'Admin' },
+    { path: '/admin/orders',   icon: '📋', label: 'Orders' },
+    { path: '/admin/products', icon: '🛍️', label: 'Products' },
+    { path: '/account',        icon: '👤', label: 'Account' },
+  ] : [
     { path: '/',        icon: '🏠', label: 'Home' },
     { path: '/shop',    icon: '🛍️', label: 'Shop' },
     { path: '/cart',    icon: '🛒', label: 'Cart', badge: totalItems },

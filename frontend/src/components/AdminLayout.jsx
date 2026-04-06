@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = ({ children }) => {
   const { logout, user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location         = useLocation();
   const navigate         = useNavigate();
 
@@ -27,13 +29,21 @@ const AdminLayout = ({ children }) => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0A0A14' }}>
 
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          zIndex: 49, display: 'none',
+        }} className="admin-overlay" />
+      )}
+
       {/* Sidebar */}
       <div style={{
         width: 250, background: '#080812',
         borderRight: '1px solid rgba(108,99,255,0.15)',
         flexShrink: 0, display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh',
-      }}>
+      }} className={`admin-sidebar${sidebarOpen ? ' open' : ''}`}>
 
         {/* Logo */}
         <div style={{
@@ -81,7 +91,7 @@ const AdminLayout = ({ children }) => {
         {/* Nav */}
         <nav style={{ flex: 1, padding: '0.75rem 0', overflowY: 'auto' }}>
           {navItems.map(item => (
-            <Link key={item.path} to={item.path} style={{
+            <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)} style={{
               display: 'flex', alignItems: 'center', gap: '0.75rem',
               padding: '0.7rem 1.5rem',
               fontSize: '0.875rem', fontWeight: 500,
@@ -154,14 +164,21 @@ const AdminLayout = ({ children }) => {
 
         {/* Top bar */}
         <div style={{
-          padding: '1rem 2rem',
+          padding: '1rem 1.5rem',
           borderBottom: '1px solid rgba(255,255,255,0.05)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           background: 'rgba(255,255,255,0.01)',
           position: 'sticky', top: 0, zIndex: 10,
           backdropFilter: 'blur(10px)',
         }}>
-          <div style={{ fontSize: '0.875rem', color: '#334155' }}>
+          {/* Hamburger for mobile */}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="admin-hamburger" style={{
+            display: 'none', background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#94A3B8', padding: '0.5rem 0.75rem',
+            borderRadius: 8, cursor: 'pointer', fontSize: '1.1rem',
+          }}>☰</button>
+          <div style={{ fontSize: '0.875rem', color: '#334155' }} className="admin-date">
             {new Date().toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -170,7 +187,7 @@ const AdminLayout = ({ children }) => {
               background: '#10B981',
               boxShadow: '0 0 8px rgba(16,185,129,0.6)',
             }} />
-            <span style={{ fontSize: '0.8rem', color: '#475569' }}>All systems online</span>
+            <span style={{ fontSize: '0.8rem', color: '#475569' }}>Online</span>
           </div>
         </div>
 
@@ -179,6 +196,25 @@ const AdminLayout = ({ children }) => {
           {children}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-sidebar {
+            position: fixed !important;
+            left: -260px !important;
+            top: 0 !important;
+            height: 100vh !important;
+            z-index: 50 !important;
+            transition: left 0.3s ease !important;
+          }
+          .admin-sidebar.open {
+            left: 0 !important;
+          }
+          .admin-overlay { display: block !important; }
+          .admin-hamburger { display: flex !important; }
+          .admin-date { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 };
