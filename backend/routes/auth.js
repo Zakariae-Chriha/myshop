@@ -8,7 +8,7 @@ const { isAdmin } = require('../middleware/isAdmin');
 const { sendPasswordReset } = require('../utils/emailService');
 
 const generateAccessToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 const generateRefreshToken = (id) =>
   jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh', { expiresIn: '30d' });
@@ -17,7 +17,7 @@ const setRefreshCookie = (res, token) => {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge:   30 * 24 * 60 * 60 * 1000, // 30 days
   });
 };
