@@ -184,6 +184,7 @@ const ChatWidget = () => {
 
       {/* Toggle button */}
       <button
+        className="chat-toggle-btn"
         onClick={() => setOpen(!open)}
         style={{
           position: 'fixed', bottom: 24, right: 24, zIndex: 9999,

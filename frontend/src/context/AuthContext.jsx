@@ -19,9 +19,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res  = await fetch(`${BASE_URL}/api/auth/login`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password }),
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body:        JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -33,9 +34,10 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     const res  = await fetch(BASE_URL + '/api/auth/register', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name, email, password }),
+      method:      'POST',
+      headers:     { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body:        JSON.stringify({ name, email, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);

@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { CartProvider } from './context/CartContext';
+import { CartProvider, useCart } from './context/CartContext';
 import ForgotPassword    from './pages/customer/ForgotPassword';
 import ResetPassword     from './pages/customer/ResetPassword';
 import ConfirmDelivery   from './pages/customer/ConfirmDelivery';
@@ -34,6 +34,73 @@ import OrdersManager     from './pages/admin/OrdersManager';
 import CustomersManager  from './pages/admin/CustomersManager';
 import CouponsManager    from './pages/admin/CouponsManager';
 import CategoriesManager from './pages/admin/CategoriesManager';
+
+// ─── Mobile Bottom Navigation ─────────────────────────────────────────────────
+const BottomNav = () => {
+  const location = useLocation();
+  const { user } = useAuth();
+  const { totalItems } = useCart();
+  const isActive = (path) => location.pathname === path;
+
+  const items = [
+    { path: '/',        icon: '🏠', label: 'Home' },
+    { path: '/shop',    icon: '🛍️', label: 'Shop' },
+    { path: '/cart',    icon: '🛒', label: 'Cart', badge: totalItems },
+    { path: '/track',   icon: '📦', label: 'Track' },
+    { path: user ? '/account' : '/login', icon: user ? '👤' : '🔑', label: user ? 'Account' : 'Login' },
+  ];
+
+  return (
+    <>
+      <nav style={{
+        display: 'none',
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
+        background: 'rgba(10,10,20,0.97)',
+        borderTop: '1px solid rgba(108,99,255,0.2)',
+        backdropFilter: 'blur(20px)',
+        padding: '0.5rem 0 0.75rem',
+      }} className="mobile-bottom-nav">
+        {items.map(({ path, icon, label, badge }) => (
+          <Link key={path} to={path} style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '0.2rem',
+            color: isActive(path) ? '#A5B4FC' : '#475569',
+            textDecoration: 'none', position: 'relative',
+            padding: '0.25rem 0',
+          }}>
+            <span style={{ fontSize: '1.4rem', lineHeight: 1, position: 'relative' }}>
+              {icon}
+              {badge > 0 && (
+                <span style={{
+                  position: 'absolute', top: -4, right: -6,
+                  background: 'linear-gradient(135deg, #6C63FF, #FF6584)',
+                  color: '#fff', borderRadius: '50%',
+                  width: 16, height: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '10px', fontWeight: 700,
+                }}>{badge}</span>
+              )}
+            </span>
+            <span style={{ fontSize: '0.65rem', fontWeight: isActive(path) ? 700 : 400 }}>{label}</span>
+            {isActive(path) && (
+              <span style={{
+                position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+                width: 24, height: 2, background: '#6C63FF', borderRadius: 2,
+              }} />
+            )}
+          </Link>
+        ))}
+      </nav>
+      <style>{`
+        @media (max-width: 768px) {
+          .mobile-bottom-nav { display: flex !important; }
+          main { padding-bottom: 70px; }
+          .chat-toggle-btn { bottom: 84px !important; }
+        }
+      `}</style>
+    </>
+  );
+};
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -85,6 +152,7 @@ const AppContent = () => {
         </Routes>
       </main>
       <Footer />
+      <BottomNav />
       <CookieBanner />
     </BrowserRouter>
   );
