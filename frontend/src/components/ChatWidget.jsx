@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import BASE_URL from '../api/config';
 
-const N8N_WEBHOOK = 'http://localhost:5678/webhook/customer-support';
+const CHAT_URL = `${BASE_URL}/api/chat`;
 
 const ChatWidget = () => {
   const [open, setOpen]       = useState(false);
@@ -24,7 +25,7 @@ const ChatWidget = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(N8N_WEBHOOK, {
+      const res = await fetch(CHAT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),

@@ -76,6 +76,7 @@ app.use('/api/payments',   require('./routes/payments'));
 app.use('/api/admin',      require('./routes/auth'));
 app.use('/api/upload',     require('./routes/upload'));
 app.use('/api/oauth',      require('./routes/oauth'));
+app.use('/api/chat',       require('./routes/chat'));
 
 app.get('/', (req, res) => {
   res.json({ message: 'MyShop API is running!' });
